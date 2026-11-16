@@ -27,13 +27,25 @@ import 'penjualan_pembayaran_screens.dart';
 // ---------------------------------------------------------------------------
 // M05 Catat Panen – 1 Pilih Sayur
 
-class PilihSayurScreen extends StatelessWidget {
+class PilihSayurScreen extends StatefulWidget {
   const PilihSayurScreen({super.key});
+
+  @override
+  State<PilihSayurScreen> createState() => _PilihSayurScreenState();
+}
+
+class _PilihSayurScreenState extends State<PilihSayurScreen> {
+  bool _galat = false;
 
   @override
   Widget build(BuildContext context) {
     final store = context.watch<AppStore>();
     final dipilih = store.draftPanen.komoditas;
+    // Sayur di draft bisa tidak sah lagi (komoditas diganti nama/dinonaktifkan): wajib pilih ulang.
+    void lanjut() {
+      setState(() => _galat = !store.sayurDraftSah);
+      if (store.sayurDraftSah) context.push(Rute.catatPanenBerat);
+    }
 
     return KerangkaHalaman(
       header: const HeaderRingkas(
@@ -42,7 +54,7 @@ class PilihSayurScreen extends StatelessWidget {
         kiri: TombolKembali(),
       ),
       bilahBawah: BilahTombol(
-        tombol: [TombolUtama(label: 'Lanjut', ikon: Ikon.arrowRight, onTap: () => context.push(Rute.catatPanenBerat))],
+        tombol: [TombolUtama(label: 'Lanjut', ikon: Ikon.arrowRight, onTap: lanjut)],
       ),
       isi: IsiFormulir(
         bawah: 94 - 17,
@@ -50,6 +62,13 @@ class PilihSayurScreen extends StatelessWidget {
         children: [
           const IndikatorLangkah(langkah: 1, teks: 'Langkah 1 dari 3: Pilih sayur'),
           Text('Sayur apa yang dipanen?', style: AppText.judulBagian),
+          if (_galat && !store.sayurDraftSah)
+            Text(
+              store.komoditasAktif.isEmpty
+                  ? 'Belum ada sayur aktif. Tambahkan atau aktifkan dulu di menu Komoditas.'
+                  : 'Pilih dulu sayur yang dipanen.',
+              style: AppText.pesanBantuan.copyWith(color: AppColors.galat),
+            ),
           LayoutBuilder(
             builder: (context, c) {
               // Di Figma tiap pilihan 165 dari lebar 356 (sisa 14 di kanan).
@@ -219,7 +238,7 @@ class _BeratTanggalScreenState extends State<BeratTanggalScreen> {
       bilahBawah: BilahTombol(
         tombol: [
           TombolUtama(label: 'Lanjut', ikon: Ikon.arrowRight, onTap: _lanjut),
-          TombolGaris(label: 'Kembali', ikon: Ikon.arrowLeft, onTap: () => context.pop()),
+          TombolGaris(label: 'Kembali', ikon: Ikon.arrowLeft, onTap: () => context.kembali()),
         ],
       ),
       isi: IsiFormulir(
@@ -284,7 +303,7 @@ class PeriksaPanenScreen extends StatelessWidget {
             ikon: Ikon.check,
             onTap: () => context.go(Rute.catatPanenBerhasil(store.simpanPanen())),
           ),
-          TombolGaris(label: 'Ada yang salah, ubah', ikon: Ikon.pencil, onTap: () => context.pop()),
+          TombolGaris(label: 'Ada yang salah, ubah', ikon: Ikon.pencil, onTap: () => context.kembali()),
         ],
       ),
       isi: IsiFormulir(

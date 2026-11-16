@@ -255,7 +255,7 @@ class _FormKomoditasScreenState extends State<FormKomoditasScreen> {
     } else {
       _store.tambahKomoditas(Komoditas(nama: nama, aktif: _aktif));
     }
-    context.pop();
+    context.kembali();
   }
 
   @override
@@ -272,7 +272,7 @@ class _FormKomoditasScreenState extends State<FormKomoditasScreen> {
       bilahBawah: BilahTombol(
         tombol: [
           TombolUtama(label: _ubah ? 'Simpan Perubahan' : 'Simpan Komoditas', ikon: Ikon.check, onTap: _simpan),
-          TombolGaris(label: 'Batal', ikon: Ikon.x, onTap: () => context.pop()),
+          TombolGaris(label: 'Batal', ikon: Ikon.x, onTap: () => context.kembali()),
         ],
       ),
       isi: IsiFormulir(
@@ -397,7 +397,7 @@ class _FilterKomoditasScreenState extends State<FilterKomoditasScreen> {
       if (_aktif[k.nama] != k.aktif) _store.ubahKomoditas(k.nama, k.copyWith(aktif: _aktif[k.nama]));
     }
     _store.aturSaringKomoditas(_saring);
-    context.pop();
+    context.kembali();
   }
 
   void _aturUlang() => setState(() {

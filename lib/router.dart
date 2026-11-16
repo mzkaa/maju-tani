@@ -52,7 +52,8 @@ abstract final class Rute {
   static String ubahTransaksi(String id) => '/transaksi/$id/ubah'; // M18
   static const riwayatHarga = '/harga'; // M19
   static const rekapSayur = '/laporan/rekap'; // M20
-  static String ubahKomoditas(String nama) => '/komoditas/ubah/$nama'; // M21
+  // Nama di-encode agar "/", "#", "?" di nama sayur tidak merusak alamat.
+  static String ubahKomoditas(String nama) => '/komoditas/ubah/${Uri.encodeComponent(nama)}'; // M21
   static const lupaSandi = '/lupa-sandi'; // M22
   static const ubahSandi = '/akun/ubah-sandi'; // M23
   static const pilihPeriode = '/laporan/periode'; // M24
@@ -108,18 +109,26 @@ final appRouter = buatRouter();
 const _tanpaMasuk = {Rute.splash, Rute.masuk, Rute.lupaSandi};
 
 /// Belum masuk → ke Masuk; sudah masuk tapi membuka Masuk → ke Beranda.
-String? _penjagaMasuk(BuildContext context, GoRouterState state) {
-  final sudahMasuk = context.read<AppStore>().sudahMasuk;
+/// Langkah Catat Panen yang dibuka langsung (mis. halaman dimuat ulang) kembali ke langkah yang belum lengkap.
+String? _penjaga(BuildContext context, GoRouterState state) {
+  final store = context.read<AppStore>();
   final lokasi = state.matchedLocation;
-  if (!sudahMasuk && !_tanpaMasuk.contains(lokasi)) return Rute.masuk;
-  if (sudahMasuk && lokasi == Rute.masuk) return Rute.beranda;
+  if (!store.sudahMasuk) return _tanpaMasuk.contains(lokasi) ? null : Rute.masuk;
+  if (lokasi == Rute.masuk) return Rute.beranda;
+  if (lokasi == Rute.catatPanenBerat && !store.sayurDraftSah) return Rute.catatPanen;
+  if (lokasi == Rute.catatPanenPeriksa && !store.draftSiap) return Rute.catatPanen;
   return null;
+}
+
+extension Kembali on BuildContext {
+  /// Ke layar sebelumnya; bila tidak ada (mis. halaman dimuat ulang di browser), ke Beranda.
+  void kembali() => canPop() ? pop() : go(Rute.beranda);
 }
 
 /// Membuat router; [awal] bisa diganti untuk tes atau pratinjau satu layar.
 GoRouter buatRouter({String awal = Rute.splash}) => GoRouter(
   initialLocation: awal,
-  redirect: _penjagaMasuk,
+  redirect: _penjaga,
   routes: [
     _layar(Rute.splash, (_) => const SplashScreen(), pudar: _durasiTab),
     _layar(Rute.masuk, (_) => const MasukScreen(), pudar: _durasiSplash),

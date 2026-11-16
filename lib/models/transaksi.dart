@@ -49,7 +49,7 @@ class Transaksi {
     DateTime? tanggalJual,
     int? beratTerjualKg,
     int? hargaPerKg,
-    String? pembeli,
+    String? Function()? pembeli,
     List<Pembayaran>? pembayaran,
   }) => Transaksi(
     id: id,
@@ -60,7 +60,8 @@ class Transaksi {
     tanggalJual: tanggalJual ?? this.tanggalJual,
     beratTerjualKg: beratTerjualKg ?? this.beratTerjualKg,
     hargaPerKg: hargaPerKg ?? this.hargaPerKg,
-    pembeli: pembeli ?? this.pembeli,
+    // Fungsi (bukan nilai) agar pembeli bisa dikosongkan menjadi null.
+    pembeli: pembeli == null ? this.pembeli : pembeli(),
     pembayaran: pembayaran ?? this.pembayaran,
   );
 

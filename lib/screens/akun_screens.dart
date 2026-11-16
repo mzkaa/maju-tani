@@ -366,7 +366,7 @@ class _UbahSandiScreenState extends State<UbahSandiScreen> {
       _sibuk = false;
       _galatLama = berhasil ? null : 'Kata sandi lama salah';
     });
-    if (berhasil) context.pop();
+    if (berhasil) context.kembali();
   }
 
   @override
@@ -386,7 +386,7 @@ class _UbahSandiScreenState extends State<UbahSandiScreen> {
             label: _sibuk ? 'Menyimpan…' : 'Simpan Kata Sandi',
             onTap: semuaTerpenuhi && !_sibuk ? _simpan : () {},
           ),
-          TombolGaris(label: 'Batal', onTap: () => context.pop()),
+          TombolGaris(label: 'Batal', onTap: () => context.kembali()),
         ],
       ),
       isi: IsiFormulir(
@@ -473,7 +473,7 @@ class PengaturanScreen extends StatelessWidget {
     return KerangkaHalaman(
       header: const HeaderRingkas(judul: 'Pengaturan', keterangan: 'Sesuaikan aplikasi', kiri: TombolKembali()),
       bilahBawah: BilahTombol(
-        tombol: [TombolUtama(label: 'Simpan Pengaturan', onTap: () => context.pop())],
+        tombol: [TombolUtama(label: 'Simpan Pengaturan', onTap: () => context.kembali())],
       ),
       isi: IsiFormulir(
         tepi: 14,

@@ -101,7 +101,7 @@ class _PilihPeriodeScreenState extends State<PilihPeriodeScreen> {
       default:
         _store.aturPeriode(PilihanPeriode.pilihTanggal, awal: _awal, akhir: akhir);
     }
-    context.pop();
+    context.kembali();
   }
 
   @override
@@ -120,7 +120,7 @@ class _PilihPeriodeScreenState extends State<PilihPeriodeScreen> {
       bilahBawah: BilahTombol(
         tombol: [
           TombolUtama(label: 'Terapkan', onTap: _terapkan),
-          TombolGaris(label: 'Batal', onTap: () => context.pop()),
+          TombolGaris(label: 'Batal', onTap: () => context.kembali()),
         ],
       ),
       isi: IsiFormulir(
@@ -307,7 +307,7 @@ class _CetakLaporanScreenState extends State<CetakLaporanScreen> {
       bilahBawah: BilahTombol(
         tombol: [
           TombolUtama(label: 'Lihat Pratinjau', onTap: () => context.push(Rute.pratinjauDokumen)),
-          TombolGaris(label: 'Batal', onTap: () => context.pop()),
+          TombolGaris(label: 'Batal', onTap: () => context.kembali()),
         ],
       ),
       isi: IsiFormulir(

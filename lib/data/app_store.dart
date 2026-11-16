@@ -306,12 +306,12 @@ class AppStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// M18: mengubah data panen & penjualan.
+  /// M18: mengubah data panen & penjualan. [pembeli] null = dikosongkan.
   void ubahTransaksi(
     String id, {
     required DateTime tanggalPanen,
     required int beratPanenKg,
-    String? pembeli,
+    required String? pembeli,
     DateTime? tanggalJual,
     int? beratTerjualKg,
     int? hargaPerKg,
@@ -320,7 +320,7 @@ class AppStore extends ChangeNotifier {
     (t) => t.copyWith(
       tanggalPanen: tanggalPanen,
       beratPanenKg: beratPanenKg,
-      pembeli: pembeli,
+      pembeli: () => pembeli,
       tanggalJual: tanggalJual,
       beratTerjualKg: beratTerjualKg,
       hargaPerKg: hargaPerKg,
@@ -354,10 +354,10 @@ class AppStore extends ChangeNotifier {
             transaksiId: t.id,
           ),
       for (final t in _transaksi)
-        for (final p in t.pembayaran)
+        for (final (i, p) in t.pembayaran.indexed)
           if (hari(p.tanggal) <= 3)
             Notifikasi(
-              id: 'masuk-${t.id}-${p.tanggal.millisecondsSinceEpoch}',
+              id: 'masuk-${t.id}-$i',
               jenis: JenisNotifikasi.pembayaranMasuk,
               judul: 'Pembayaran ${t.komoditas} masuk',
               keterangan:
@@ -485,6 +485,12 @@ class AppStore extends ChangeNotifier {
     beratKg: dataContoh ? SampleData.contohBeratPanen : null,
     pengepul: dataContoh ? SampleData.contohPengepul : '',
   );
+
+  /// Sayur di draft masih ada di daftar komoditas aktif (bisa berubah bila komoditas diganti/dinonaktifkan).
+  bool get sayurDraftSah => komoditasAktif.any((k) => k.nama == draftPanen.komoditas);
+
+  /// Draft siap disimpan: sayur sah dan berat sudah diisi.
+  bool get draftSiap => sayurDraftSah && (draftPanen.beratKg ?? 0) > 0;
 
   void ubahDraft(void Function(DraftPanen d) ubah) {
     ubah(draftPanen);

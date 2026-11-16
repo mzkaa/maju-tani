@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/app_store.dart';
 import '../data/format.dart';
 import '../models/transaksi.dart';
+import '../router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import '../widgets/app_icon.dart';
@@ -36,7 +36,9 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
   late final _pengepul = TextEditingController(text: _awal?.pembeli ?? '');
   late final _beratJual = TextEditingController(text: '${_awal?.beratTerjualKg ?? ''}');
   late final _harga = TextEditingController(text: _awal?.hargaPerKg == null ? '' : Format.rupiah(_awal!.hargaPerKg!));
-  String? _galat;
+  String? _galatPanen;
+  String? _galatJual;
+  String? _galatHarga;
 
   @override
   void dispose() {
@@ -46,22 +48,45 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
     super.dispose();
   }
 
-  Future<DateTime?> _pilih(DateTime awal) => showDatePicker(
-    context: context,
-    initialDate: awal,
-    firstDate: DateTime(_store.hariIni.year - 1),
-    lastDate: _store.hariIni,
-  );
+  /// [terawal] = batas awal kalender; catatan lama tetap bisa dibuka (tidak dibatasi tahun lalu).
+  Future<DateTime?> _pilih(DateTime awal, {DateTime? terawal}) {
+    final batas = terawal ?? DateTime(_store.hariIni.year - 1);
+    return showDatePicker(
+      context: context,
+      initialDate: awal,
+      firstDate: awal.isBefore(batas) ? DateUtils.dateOnly(awal) : DateUtils.dateOnly(batas),
+      lastDate: _store.hariIni,
+    );
+  }
 
   void _simpan(Transaksi t) {
-    final panen = Format.angka(_beratPanen.text);
-    final jual = Format.angka(_beratJual.text);
+    // Berat harus angka bulat: "91,5" ditolak, bukan dibaca 915.
+    final panen = int.tryParse(_beratPanen.text.trim());
+    final jual = int.tryParse(_beratJual.text.trim());
     final harga = Format.angka(_harga.text);
-    final salah = panen == null || panen <= 0 || (t.sudahDijual && (jual == null || jual <= 0 || harga == null));
-    if (salah) {
-      setState(() => _galat = 'Periksa lagi berat dan harga');
-      return;
+    final panenSalah = panen == null || panen <= 0;
+    String? galatJual;
+    String? galatHarga;
+    if (t.sudahDijual) {
+      final tanggalJual = _tanggalJual;
+      if (jual == null || jual <= 0 || (!panenSalah && jual > panen)) {
+        galatJual = panenSalah ? 'Isi berat terjual' : 'Isi berat antara 1 dan ${Format.kg(panen)}';
+      } else if (tanggalJual != null && DateUtils.dateOnly(tanggalJual).isBefore(DateUtils.dateOnly(_tanggalPanen))) {
+        galatJual = 'Tanggal terjual tidak boleh sebelum tanggal panen';
+      }
+      if (harga == null || harga <= 0) {
+        galatHarga = 'Isi harga jual per kg';
+      } else if (galatJual == null && jual! * harga < t.totalDibayar) {
+        // Total penjualan tidak boleh di bawah uang yang sudah diterima.
+        galatHarga = 'Total jadi lebih kecil dari yang sudah dibayar (${Format.rupiah(t.totalDibayar)})';
+      }
     }
+    setState(() {
+      _galatPanen = panenSalah ? 'Isi berat panen dalam kg' : null;
+      _galatJual = galatJual;
+      _galatHarga = galatHarga;
+    });
+    if (panenSalah || galatJual != null || galatHarga != null) return;
     _store.ubahTransaksi(
       t.id,
       tanggalPanen: _tanggalPanen,
@@ -71,7 +96,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
       beratTerjualKg: jual,
       hargaPerKg: harga,
     );
-    context.pop();
+    context.kembali();
   }
 
   @override
@@ -89,7 +114,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
           : BilahTombol(
               tombol: [
                 TombolUtama(label: 'Simpan Perubahan', ikon: Ikon.check, onTap: () => _simpan(t)),
-                TombolGaris(label: 'Batal', ikon: Ikon.x, onTap: () => context.pop()),
+                TombolGaris(label: 'Batal', ikon: Ikon.x, onTap: () => context.kembali()),
               ],
             ),
       isi: t == null
@@ -115,7 +140,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
                   controller: _beratPanen,
                   keyboardType: TextInputType.number,
                   akhiran: Text('kg', style: AppText.akhiranIsian),
-                  galat: _galat,
+                  galat: _galatPanen,
                 ),
                 IsianKaca(label: 'Pengepul', ikon: Ikon.user, controller: _pengepul),
                 if (t.sudahDijual) ...[
@@ -125,7 +150,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
                     ikon: Ikon.calendar,
                     nilaiTetap: Format.tanggal(_tanggalJual ?? _store.hariIni),
                     onTap: () async {
-                      final d = await _pilih(_tanggalJual ?? _store.hariIni);
+                      final d = await _pilih(_tanggalJual ?? _store.hariIni, terawal: _tanggalPanen);
                       if (d != null) setState(() => _tanggalJual = d);
                     },
                   ),
@@ -135,6 +160,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
                     controller: _beratJual,
                     keyboardType: TextInputType.number,
                     akhiran: Text('kg', style: AppText.akhiranIsian),
+                    galat: _galatJual,
                   ),
                   IsianKaca(
                     label: 'Harga jual per kg',
@@ -143,6 +169,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: const [FormatRupiahInput()],
                     akhiran: Text('/kg', style: AppText.akhiranIsian),
+                    galat: _galatHarga,
                   ),
                 ],
                 const KotakKaca(

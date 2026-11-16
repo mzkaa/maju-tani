@@ -64,8 +64,9 @@ class CatatanBiru extends StatelessWidget {
   }
 }
 
-Future<DateTime?> _pilihTanggal(BuildContext context, DateTime awal, DateTime hariIni) =>
-    showDatePicker(context: context, initialDate: awal, firstDate: DateTime(hariIni.year - 1), lastDate: hariIni);
+/// [terawal]: penjualan tidak boleh sebelum panen, pembayaran tidak boleh sebelum penjualan.
+Future<DateTime?> _pilihTanggal(BuildContext context, DateTime awal, DateTime hariIni, {required DateTime terawal}) =>
+    showDatePicker(context: context, initialDate: awal, firstDate: DateUtils.dateOnly(terawal), lastDate: hariIni);
 
 // ---------------------------------------------------------------------------
 // M09 Lengkapi Penjualan
@@ -107,7 +108,8 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
   }
 
   void _simpan(Transaksi t) {
-    final berat = Format.angka(_berat.text);
+    // Berat harus angka bulat: "117,5" ditolak, bukan dibaca 1175.
+    final berat = int.tryParse(_berat.text.trim());
     final harga = Format.angka(_harga.text);
     setState(() {
       _galatBerat = (berat == null || berat <= 0 || berat > t.beratPanenKg)
@@ -123,7 +125,7 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.watch<AppStore>().cariTransaksi(widget.id);
-    final berat = Format.angka(_berat.text) ?? 0;
+    final berat = int.tryParse(_berat.text.trim()) ?? 0;
     final harga = Format.angka(_harga.text) ?? 0;
     final total = berat * harga;
 
@@ -164,7 +166,7 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
                   ikon: Ikon.calendar,
                   nilaiTetap: Format.hariTanggal(_tanggal),
                   onTap: () async {
-                    final d = await _pilihTanggal(context, _tanggal, _store.hariIni);
+                    final d = await _pilihTanggal(context, _tanggal, _store.hariIni, terawal: t.tanggalPanen);
                     if (d != null) setState(() => _tanggal = d);
                   },
                   akhiran: const AppIcon(Ikon.chevronDown, size: 24, color: AppColors.teksKedua),
@@ -289,7 +291,12 @@ class _CatatPembayaranScreenState extends State<CatatPembayaranScreen> {
                   ikon: Ikon.calendar,
                   nilaiTetap: Format.hariTanggal(_tanggal),
                   onTap: () async {
-                    final d = await _pilihTanggal(context, _tanggal, _store.hariIni);
+                    final d = await _pilihTanggal(
+                      context,
+                      _tanggal,
+                      _store.hariIni,
+                      terawal: t.tanggalJual ?? t.tanggalPanen,
+                    );
                     if (d != null) setState(() => _tanggal = d);
                   },
                   akhiran: const AppIcon(Ikon.chevronDown, size: 24, color: AppColors.teksKedua),

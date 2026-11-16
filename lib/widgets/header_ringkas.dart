@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 
 import '../router.dart';
 import '../theme/app_layout.dart';
@@ -93,7 +92,7 @@ class TombolKembali extends StatelessWidget {
     return TombolBulatHeader(
       ikon: Ikon.chevronLeft,
       label: 'Kembali',
-      onTap: () => context.canPop() ? context.pop() : context.go(Rute.beranda),
+      onTap: context.kembali,
     );
   }
 }
