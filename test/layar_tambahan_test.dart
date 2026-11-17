@@ -223,7 +223,8 @@ void main() {
   });
 
   testWidgets('M27 Dokumen Berhasil', (t) async {
-    await _uji(t, Rute.dokumenBerhasil, siapkan: bulanLalu, const {
+    // Tunggu animasi muncul selesai sebelum mengukur posisi.
+    await _uji(t, Rute.dokumenBerhasil, siapkan: bulanLalu, sebelum: () => t.pump(const Duration(seconds: 2)), const {
       'Laporan berhasil diunduh': Offset(14, 306),
       'Bisa langsung dicetak atau dikirim lewat WhatsApp.': Offset(14, 344),
       'Laporan-Penjualan-Okt-2026.pdf': Offset(87, 391),
@@ -272,11 +273,13 @@ void main() {
       '✓ Besar': Offset(128, 198),
       // Tanda ✓ memakai font cadangan sehingga chip "Besar" sedikit lebih sempit.
       'Sangat besar': Offset(211.8, 198),
-      'Pengingat lengkapi harga': Offset(28, 269),
-      'Notifikasi tiap sore': Offset(28, 288),
-      'Cadangkan data': Offset(28, 318),
-      'Terakhir: 10 Nov 2026': Offset(28, 337),
-      'Cetak & unduh laporan': Offset(28, 416),
+      // Kartu ukuran memuat baris "Ukuran tampilan" (bukan dari Figma): tiap teks di bawahnya turun 90 px.
+      'Ukuran tampilan': Offset(28, 246),
+      'Pengingat lengkapi harga': Offset(28, 359),
+      'Notifikasi tiap sore': Offset(28, 378),
+      'Cadangkan data': Offset(28, 408),
+      'Terakhir: 10 Nov 2026': Offset(28, 427),
+      'Cetak & unduh laporan': Offset(28, 506),
       'Simpan Pengaturan': Offset(114.5, 786.5),
     });
   });

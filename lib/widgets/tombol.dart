@@ -92,7 +92,13 @@ class TombolGaris extends StatelessWidget {
                 AppIcon(ikon!, size: 24, color: warnaIkon, warnaPerGaris: warnaPerGaris),
                 const SizedBox(width: 10),
               ],
-              Text(label, style: AppText.tombolGaris.copyWith(color: warnaTeks)),
+              // Tombol sempit (mis. dua tombol sejajar): teks mengecil, tidak terpotong atau meluber.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(label, maxLines: 1, style: AppText.tombolGaris.copyWith(color: warnaTeks)),
+                ),
+              ),
             ],
           ),
         ),

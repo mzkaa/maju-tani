@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/app_store.dart';
 import '../data/format.dart';
+import '../data/prakiraan.dart';
 import '../models/ringkasan.dart';
 import '../router.dart';
 import '../theme/app_colors.dart';
@@ -51,10 +52,7 @@ class _RiwayatHargaScreenState extends State<RiwayatHargaScreen> {
             KotakKaca(
               radius: 19,
               padding: const EdgeInsets.all(14),
-              child: Text(
-                'Grafik harga muncul setelah ada penjualan minimal 2 bulan.',
-                style: AppText.barisKeterangan,
-              ),
+              child: Text('Grafik harga muncul setelah ada penjualan minimal 2 bulan.', style: AppText.barisKeterangan),
             ),
           ],
         ),
@@ -62,6 +60,7 @@ class _RiwayatHargaScreenState extends State<RiwayatHargaScreen> {
     }
     final riwayat = store.riwayatHarga(sayur);
     final terbaru = riwayat.reversed.take(4).toList();
+    final prakiraan = store.prakiraanHarga(sayur);
 
     return KerangkaHalaman(
       header: const HeaderRingkas(
@@ -102,6 +101,73 @@ class _RiwayatHargaScreenState extends State<RiwayatHargaScreen> {
               ],
             ),
           ),
+          if (prakiraan != null) ...[
+            JudulKecil(
+              label: 'PRAKIRAAN',
+              judul: '$sayur ${Format.bulanTahun(DateTime(riwayat.last.bulan.year, riwayat.last.bulan.month + 1))}',
+            ),
+            _KartuPrakiraan(hasil: prakiraan, hargaTerakhir: riwayat.last.hargaPerKg),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Prakiraan harga bulan depan: angka utama, selisih dari bulan terakhir, metode, dan keandalannya.
+class _KartuPrakiraan extends StatelessWidget {
+  const _KartuPrakiraan({required this.hasil, required this.hargaTerakhir});
+
+  final HasilPrakiraan hasil;
+  final int hargaTerakhir;
+
+  @override
+  Widget build(BuildContext context) {
+    final selisih = hargaTerakhir == 0 ? 0 : ((hasil.hargaPerKg - hargaTerakhir) / hargaTerakhir * 100).round();
+    final naik = selisih >= 0;
+    final label = AppText.gaya(14, FontWeight.w600, AppColors.teksUtama);
+    final nilai = AppText.gaya(14, FontWeight.w800, AppColors.teksKeduaAlt);
+
+    return KotakKaca(
+      radius: 19,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(child: Text('${Format.rupiah(hasil.hargaPerKg)}/kg', style: AppText.harga)),
+              Text(
+                '${naik ? '+' : ''}$selisih%',
+                style: AppText.gaya(14, FontWeight.w800, naik ? AppColors.hijauAktif : AppColors.oranyeAngka),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Perkiraan, dibanding bulan terakhir', style: AppText.sedang13Samar),
+          const SizedBox(height: 12),
+          const GarisTipis(),
+          const SizedBox(height: 12),
+          BarisNilai(label: 'Metode', nilai: hasil.metode.label, gayaLabel: label, gayaNilai: nilai),
+          const SizedBox(height: 12),
+          BarisNilai(label: 'Data dipakai', nilai: '${hasil.jumlahData} bulan', gayaLabel: label, gayaNilai: nilai),
+          const SizedBox(height: 12),
+          BarisNilai(
+            label: 'Keandalan',
+            nilai: hasil.mape == null
+                ? 'Belum bisa diukur'
+                : '${hasil.kepercayaan} (galat ${hasil.mape!.toStringAsFixed(1).replaceAll('.', ',')}%)',
+            gayaLabel: label,
+            gayaNilai: nilai,
+          ),
+          if (hasil.mape == null) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Data masih sedikit. Prakiraan makin akurat setelah ada penjualan 4 bulan atau lebih.',
+              style: AppText.sedang13Samar,
+            ),
+          ],
         ],
       ),
     );

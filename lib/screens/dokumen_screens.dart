@@ -19,10 +19,11 @@ import '../widgets/header_ringkas.dart';
 import '../widgets/isi_formulir.dart';
 import '../widgets/isian_kaca.dart';
 import '../widgets/kerangka_halaman.dart';
+import '../widgets/lingkaran_sukses.dart';
+import '../widgets/muncul_bertahap.dart';
 import '../widgets/kotak_kaca.dart';
 import '../widgets/layar_tambahan.dart';
 import '../widgets/tombol.dart';
-import 'catat_panen_screens.dart';
 
 const _bawah = 158.0 + 145 - 17;
 
@@ -579,10 +580,7 @@ class DokumenBerhasilScreen extends StatelessWidget {
       bilahBawah: BilahTombol(
         tombol: [
           // Lembar bagikan: buka di aplikasi lain, simpan ke Files, atau kirim lewat WhatsApp.
-          TombolUtama(
-            label: 'Buka File',
-            onTap: f == null ? () {} : f.bagikan,
-          ),
+          TombolUtama(label: 'Buka File', onTap: f == null ? () {} : f.bagikan),
           TombolGaris(label: 'Kembali ke Laporan', onTap: () => context.go(Rute.laporan)),
         ],
       ),
@@ -593,84 +591,93 @@ class DokumenBerhasilScreen extends StatelessWidget {
         children: [
           const SizedBox(height: 30),
           const Center(child: LingkaranSukses(warnaDalam: Color(0xFF1C5E3D), ukuranCentang: 36, tebalCentang: 3)),
-          Text(
-            'Laporan berhasil diunduh',
-            textAlign: TextAlign.center,
-            style: AppText.gaya(20, FontWeight.w800, AppColors.teksUtama, tinggi: 1.35),
-          ),
-          Text(
-            'Bisa langsung dicetak atau dikirim lewat WhatsApp.',
-            textAlign: TextAlign.center,
-            style: AppText.gaya(14, FontWeight.w500, const Color(0x7D0F1F19), tinggi: 1.35), // 70% × 70%
-          ),
-          KotakKaca(
-            radius: 20,
-            padding: const EdgeInsets.all(16),
-            gradien: const GradienFigma(
-              awal: Offset(0, 0),
-              akhir: Offset(0.6, 0.8),
-              colors: [Color(0xF217422E), Color(0xF20D291C)],
+          MunculBertahap(
+            jeda: const Duration(milliseconds: 350),
+            child: Text(
+              'Laporan berhasil diunduh',
+              textAlign: TextAlign.center,
+              style: AppText.gaya(20, FontWeight.w800, AppColors.teksUtama, tinggi: 1.35),
             ),
-            warnaGaris: const Color(0x2EFFFFFF),
-            bayangan: [AppShadows.figma(const Color(0x40081F12), y: 14, blur: 32, spread: -10)],
-            sorotan: null,
-            kaburKaca: null,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [AppColors.pdfAwal, AppColors.pdfAkhir],
+          ),
+          MunculBertahap(
+            jeda: const Duration(milliseconds: 450),
+            child: Text(
+              'Bisa langsung dicetak atau dikirim lewat WhatsApp.',
+              textAlign: TextAlign.center,
+              style: AppText.gaya(14, FontWeight.w500, const Color(0x7D0F1F19), tinggi: 1.35), // 70% × 70%
+            ),
+          ),
+          MunculBertahap(
+            jeda: const Duration(milliseconds: 550),
+            child: KotakKaca(
+              radius: 20,
+              padding: const EdgeInsets.all(16),
+              gradien: const GradienFigma(
+                awal: Offset(0, 0),
+                akhir: Offset(0.6, 0.8),
+                colors: [Color(0xF217422E), Color(0xF20D291C)],
+              ),
+              warnaGaris: const Color(0x2EFFFFFF),
+              bayangan: [AppShadows.figma(const Color(0x40081F12), y: 14, blur: 32, spread: -10)],
+              sorotan: null,
+              kaburKaca: null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [AppColors.pdfAwal, AppColors.pdfAkhir],
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const AppIcon(Ikon.fileText, size: 18, color: Colors.white, tebal: 1.5),
+                            const SizedBox(height: 1),
+                            Text(pdf ? 'PDF' : 'XLS', style: AppText.gaya(9, FontWeight.w800, Colors.white)),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const AppIcon(Ikon.fileText, size: 18, color: Colors.white, tebal: 1.5),
-                          const SizedBox(height: 1),
-                          Text(pdf ? 'PDF' : 'XLS', style: AppText.gaya(9, FontWeight.w800, Colors.white)),
-                        ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(namaFile, style: AppText.gaya(14, FontWeight.w700, Colors.white)),
+                            const SizedBox(height: 3),
+                            Text(keterangan, style: AppText.gaya(12, FontWeight.w500, const Color(0x99FFFFFF))),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(namaFile, style: AppText.gaya(14, FontWeight.w700, Colors.white)),
-                          const SizedBox(height: 3),
-                          Text(keterangan, style: AppText.gaya(12, FontWeight.w500, const Color(0x99FFFFFF))),
-                        ],
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 28,
+                        height: 28,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(color: AppColors.langkahSelesai, shape: BoxShape.circle),
+                        child: const AppIcon(Ikon.check, size: 14, color: AppColors.ikonLangkah, tebal: 1.1667),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 28,
-                      height: 28,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(color: AppColors.langkahSelesai, shape: BoxShape.circle),
-                      child: const AppIcon(Ikon.check, size: 14, color: AppColors.ikonLangkah, tebal: 1.1667),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                const GarisTipis(warna: Color(0x24FFFFFF)),
-                const SizedBox(height: 14),
-                BarisNilai(
-                  label: 'Tersimpan di',
-                  nilai: 'Sesuai pilihan saat dibagikan',
-                  gayaLabel: AppText.gaya(12, FontWeight.w500, const Color(0x99FFFFFF)),
-                  gayaNilai: AppText.gaya(12, FontWeight.w700, const Color(0xE6FFFFFF)),
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const GarisTipis(warna: Color(0x24FFFFFF)),
+                  const SizedBox(height: 14),
+                  BarisNilai(
+                    label: 'Tersimpan di',
+                    nilai: 'Sesuai pilihan saat dibagikan',
+                    gayaLabel: AppText.gaya(12, FontWeight.w500, const Color(0x99FFFFFF)),
+                    gayaNilai: AppText.gaya(12, FontWeight.w700, const Color(0xE6FFFFFF)),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -721,12 +728,7 @@ class NotaPembayaranScreen extends StatelessWidget {
           ),
         ],
       ),
-      isi: IsiFormulir(
-        tepi: 14,
-        jarak: 11,
-        bawah: _bawah,
-        children: [if (adaNota) _KartuNota(t)],
-      ),
+      isi: IsiFormulir(tepi: 14, jarak: 11, bawah: _bawah, children: [if (adaNota) _KartuNota(t)]),
     );
   }
 }

@@ -11,10 +11,12 @@ import '../theme/app_layout.dart';
 import '../theme/app_text.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/bilah_tombol.dart';
+import '../widgets/chip_pilihan.dart';
 import '../widgets/header_ringkas.dart';
 import '../widgets/isi_formulir.dart';
 import '../widgets/isian_kaca.dart';
 import '../widgets/kerangka_halaman.dart';
+import '../widgets/lingkaran_sukses.dart';
 import '../widgets/kotak_kaca.dart';
 import '../widgets/layar_tambahan.dart';
 import '../widgets/nav_bawah.dart';
@@ -47,41 +49,60 @@ class DataKomoditasScreen extends StatelessWidget {
       nav: true,
       navAktif: TabUtama.komoditas,
       isi: Padding(
-        padding: EdgeInsets.fromLTRB(14, 142 + AppLayout.ekstraAtas(context), 14, 101),
+        padding: EdgeInsets.fromLTRB(14, 142 + AppLayout.ekstraAtas(context), 14, 110),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Di prototype, chip saring membuka layar Filter Komoditas (M29).
-            Row(
-              children: [
-                _ChipKomoditas(
-                  teks: 'Semua (${semua.length})',
-                  aktif: saring == null,
-                  onTap: () => context.push(Rute.filterKomoditas),
-                ),
-                const SizedBox(width: 8),
-                _ChipKomoditas(
-                  teks: 'Aktif ($jumlahAktif)',
-                  aktif: saring == true,
-                  onTap: () => context.push(Rute.filterKomoditas),
-                ),
-                const SizedBox(width: 8),
-                _ChipKomoditas(
-                  teks: 'Nonaktif (${semua.length - jumlahAktif})',
-                  aktif: saring == false,
-                  onTap: () => context.push(Rute.filterKomoditas),
-                ),
-              ],
-            ),
-            for (final k in tampil) ...[
-              const SizedBox(height: 12),
-              _KartuKomoditas(
-                komoditas: k,
-                harga: store.hargaTerakhir(k.nama),
-                kaliPanen: store.kaliPanen(k.nama),
-                totalKg: store.totalPanenKg(k.nama),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  ChipPilihan(
+                    teks: 'Semua (${semua.length})',
+                    aktif: saring == null,
+                    onTap: () => context.push(Rute.filterKomoditas),
+                  ),
+                  const SizedBox(width: 8),
+                  ChipPilihan(
+                    teks: 'Aktif ($jumlahAktif)',
+                    aktif: saring == true,
+                    onTap: () => context.push(Rute.filterKomoditas),
+                  ),
+                  const SizedBox(width: 8),
+                  ChipPilihan(
+                    teks: 'Nonaktif (${semua.length - jumlahAktif})',
+                    aktif: saring == false,
+                    onTap: () => context.push(Rute.filterKomoditas),
+                  ),
+                ],
               ),
-            ],
+            ),
+            const SizedBox(height: 12),
+            KotakKaca(
+              radius: 20,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              child: tampil.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text('Belum ada sayur di daftar ini', style: AppText.keterangan),
+                    )
+                  : Column(
+                      children: [
+                        for (final (i, k) in tampil.indexed) ...[
+                          if (i > 0) Container(height: 1, color: const Color(0x140F1F19)), // garis tipis 8%
+                          _BarisKomoditas(
+                            komoditas: k,
+                            harga: store.hargaTerakhir(k.nama),
+                            kaliPanen: store.kaliPanen(k.nama),
+                            totalKg: store.totalPanenKg(k.nama),
+                          ),
+                        ],
+                      ],
+                    ),
+            ),
           ],
         ),
       ),
@@ -89,42 +110,9 @@ class DataKomoditasScreen extends StatelessWidget {
   }
 }
 
-class _ChipKomoditas extends StatelessWidget {
-  const _ChipKomoditas({required this.teks, required this.aktif, required this.onTap});
-
-  final String teks;
-  final bool aktif;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: aktif,
-      label: teks,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 10), // + garis 1 = 11
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: aktif ? AppColors.hijauAktif : const Color(0xBFFFFFFF), // putih 75%
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: const Color(0xE6FFFFFF)), // putih 90%
-          ),
-          child: Text(
-            teks,
-            style: AppText.chipKecil.copyWith(color: aktif ? const Color(0xFFFFFFFF) : AppColors.teksUtama),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _KartuKomoditas extends StatelessWidget {
-  const _KartuKomoditas({required this.komoditas, required this.harga, required this.kaliPanen, required this.totalKg});
+/// Satu baris komoditas: ikon daun, nama (+ tanda "Nonaktif"), ringkasan harga & panen, dan panah ke Ubah.
+class _BarisKomoditas extends StatelessWidget {
+  const _BarisKomoditas({required this.komoditas, required this.harga, required this.kaliPanen, required this.totalKg});
 
   final Komoditas komoditas;
   final int? harga;
@@ -134,79 +122,65 @@ class _KartuKomoditas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final k = komoditas;
-    final kartu = KotakKaca(
-      radius: 16,
-      padding: const EdgeInsets.all(10),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: AppColors.daunLatar, borderRadius: BorderRadius.circular(14)),
-            child: const AppIcon(Ikon.leaf, size: 24, color: AppColors.ikonDaun),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    final ringkas = [
+      if (harga != null) '${Format.rupiah(harga!)}/kg',
+      kaliPanen == 0 ? 'Belum pernah dipanen' : '$kaliPanen× panen · ${Format.kg(totalKg)}',
+    ].join(' · ');
+    final baris = Semantics(
+      button: true,
+      label: 'Ubah ${k.nama}${k.aktif ? '' : ', nonaktif'}, $ringkas',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => context.push(Rute.ubahKomoditas(k.nama)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: AppColors.daunLatar, borderRadius: BorderRadius.circular(12)),
+                child: const AppIcon(Ikon.leaf, size: 20, color: AppColors.ikonDaun),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(k.nama, style: AppText.namaKomoditas),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: k.aktif ? AppColors.daunLatar : const Color(0x1F0F1F19), // 12%
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        k.aktif ? 'Aktif' : 'Nonaktif',
-                        style: AppText.lencanaKecil.copyWith(
-                          color: k.aktif ? AppColors.hijauAktif : const Color(0xB30F1F19), // 70%
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(k.nama, style: AppText.judulTugas, maxLines: 1, overflow: TextOverflow.ellipsis),
                         ),
-                      ),
+                        if (!k.aktif) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0x1F0F1F19), // 12%
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text('Nonaktif', style: AppText.gaya(10, FontWeight.w700, AppColors.teksKedua)),
+                          ),
+                        ],
+                      ],
                     ),
+                    const SizedBox(height: 2),
+                    Text(ringkas, style: AppText.keterangan, maxLines: 1, overflow: TextOverflow.ellipsis),
                   ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  harga == null ? 'Harga terakhir belum ada' : 'Harga terakhir ${Format.rupiah(harga!)}/kg',
-                  style: AppText.hargaKomoditas,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  kaliPanen == 0 ? 'Belum pernah dipanen' : '$kaliPanen kali panen · ${Format.kg(totalKg)}',
-                  style: AppText.panenKomoditas,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Semantics(
-            button: true,
-            label: 'Ubah ${k.nama}',
-            child: GestureDetector(
-              onTap: () => context.push(Rute.ubahKomoditas(k.nama)),
-              child: Container(
-                height: 36,
-                padding: const EdgeInsets.symmetric(horizontal: 10), // + garis 1 = 11
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xB3FFFFFF), // putih 70%
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0x330F1F19)), // 20%
-                ),
-                child: Text('Ubah', style: AppText.chipKecil.copyWith(color: AppColors.hijauAktif)),
               ),
-            ),
+              const SizedBox(width: 8),
+              const AppIcon(Ikon.chevronRight, size: 18, color: AppColors.teksKedua),
+            ],
           ),
-        ],
+        ),
       ),
     );
-    // Komoditas nonaktif tampil samar (65%).
-    return k.aktif ? kartu : Opacity(opacity: 0.65, child: kartu);
+    // Komoditas nonaktif tampil samar.
+    return k.aktif ? baris : Opacity(opacity: 0.6, child: baris);
   }
 }
 
@@ -241,7 +215,7 @@ class _FormKomoditasScreenState extends State<FormKomoditasScreen> {
     super.dispose();
   }
 
-  void _simpan() {
+  Future<void> _simpan() async {
     final nama = _nama.text.trim();
     final dipakai = _store.komoditas.any(
       (k) => k.nama.toLowerCase() == nama.toLowerCase() && k.nama != widget.namaLama,
@@ -255,7 +229,8 @@ class _FormKomoditasScreenState extends State<FormKomoditasScreen> {
     } else {
       _store.tambahKomoditas(Komoditas(nama: nama, aktif: _aktif));
     }
-    context.kembali();
+    await tampilkanBerhasil(context, _ubah ? 'Sayur diperbarui' : 'Sayur ditambahkan');
+    if (mounted) context.kembali();
   }
 
   @override

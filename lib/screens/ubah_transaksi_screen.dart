@@ -13,6 +13,7 @@ import '../widgets/header_ringkas.dart';
 import '../widgets/isi_formulir.dart';
 import '../widgets/isian_kaca.dart';
 import '../widgets/kerangka_halaman.dart';
+import '../widgets/lingkaran_sukses.dart';
 import '../widgets/kotak_kaca.dart';
 import '../widgets/layar_tambahan.dart';
 import '../widgets/tombol.dart';
@@ -59,7 +60,7 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
     );
   }
 
-  void _simpan(Transaksi t) {
+  Future<void> _simpan(Transaksi t) async {
     // Berat harus angka bulat: "91,5" ditolak, bukan dibaca 915.
     final panen = int.tryParse(_beratPanen.text.trim());
     final jual = int.tryParse(_beratJual.text.trim());
@@ -96,7 +97,8 @@ class _UbahTransaksiScreenState extends State<UbahTransaksiScreen> {
       beratTerjualKg: jual,
       hargaPerKg: harga,
     );
-    context.kembali();
+    await tampilkanBerhasil(context, 'Perubahan tersimpan');
+    if (mounted) context.kembali();
   }
 
   @override

@@ -6,25 +6,37 @@ import 'package:flutter/widgets.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 
-/// Cincin persen uang masuk (hijau = sudah masuk, oranye = belum dibayar).
-/// Ukuran 112, tebal cincin 12% dari ukuran, seperti di Figma.
+/// Cincin persen uang yang sudah dibayar: busur hijau di atas lintasan oranye lembut (= belum dibayar).
+/// Busur terisi pelan saat tampil dan saat nilainya berubah; angka di tengah selalu nilai akhir.
 class CincinPersen extends StatelessWidget {
-  const CincinPersen({super.key, required this.persen});
+  const CincinPersen({super.key, required this.persen, this.ukuran = 96});
 
   /// 0..1
   final double persen;
+  final double ukuran;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: 112,
-      child: CustomPaint(
-        painter: _CincinPainter(persen.clamp(0, 1)),
-        // Di Figma label persen sedikit bergeser dari tengah (4 px ke kiri, 2,5 px ke atas).
-        child: Center(
-          child: Transform.translate(
-            offset: const Offset(-4, -2.5),
-            child: Text('${(persen * 100).round()}%', style: AppText.persen),
+    final p = persen.clamp(0.0, 1.0);
+    final animasiMati = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    return Semantics(
+      label: '${(p * 100).round()} persen sudah dibayar',
+      excludeSemantics: true,
+      child: SizedBox.square(
+        dimension: ukuran,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: p),
+          duration: animasiMati ? Duration.zero : const Duration(milliseconds: 900),
+          curve: Curves.easeOutCubic,
+          builder: (context, nilai, child) => CustomPaint(painter: _CincinPainter(nilai), child: child),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('${(p * 100).round()}%', style: AppText.persen),
+                Text('dibayar', style: AppText.gaya(11, FontWeight.w600, AppColors.teksKeduaAlt, tinggi: 1)),
+              ],
+            ),
           ),
         ),
       ),
@@ -37,80 +49,58 @@ class _CincinPainter extends CustomPainter {
 
   final double persen;
 
-  // Celah antara busur hijau dan oranye (dari Figma, ±4,6°).
-  static const _celah = 4.6 * math.pi / 180;
-
   @override
   void paint(Canvas canvas, Size size) {
-    final tebal = size.width * 0.12;
+    final tebal = size.width * 0.1;
     final pusat = size.center(Offset.zero);
-    final r = size.width / 2 - tebal / 2;
-    final kotak = Rect.fromCircle(center: pusat, radius: r);
-
-    // Lintasan putih 80% dengan bayangan dalam tipis.
-    final luar = Path()..addOval(Offset.zero & size);
-    final dalam = Path()..addOval(Rect.fromCircle(center: pusat, radius: size.width / 2 - tebal));
-    final cincin = Path.combine(PathOperation.difference, luar, dalam);
-    canvas.drawPath(cincin, Paint()..color = const Color(0xCCFFFFFF));
-    canvas.save();
-    canvas.clipPath(cincin);
-    final bayanganDalam = Path.combine(
-      PathOperation.difference,
-      Path()..addRect((Offset.zero & size).inflate(8)),
-      cincin.shift(const Offset(0, 1)),
-    );
-    canvas.drawPath(
-      bayanganDalam,
-      Paint()
-        ..color =
-            const Color(0x1F0B291A) // 12%
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5),
-    );
-    canvas.restore();
-
-    const mulai = -math.pi / 2;
-    final sapuanHijau = persen * 2 * math.pi;
+    final kotak = Rect.fromCircle(center: pusat, radius: size.width / 2 - tebal / 2);
     final garis = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = tebal
-      ..strokeCap = StrokeCap.butt;
+      ..strokeCap = StrokeCap.round;
 
-    // Busur oranye: sisa lingkaran dikurangi celah di kedua ujung.
-    final sapuanOranye = 2 * math.pi - sapuanHijau - 2 * _celah;
-    if (sapuanOranye > 0) {
-      canvas.drawArc(
-        kotak,
-        mulai + sapuanHijau + _celah,
-        sapuanOranye,
-        false,
-        Paint.from(garis)..color = AppColors.oranyeGaris,
-      );
-    }
+    // Lintasan: sisa yang belum dibayar, oranye lembut.
+    canvas.drawArc(
+      kotak,
+      0,
+      2 * math.pi,
+      false,
+      Paint.from(garis)..color = AppColors.oranyeGaris.withValues(alpha: 0.22),
+    );
 
-    if (sapuanHijau > 0) {
-      // Bayangan busur hijau (y 3, blur 8, hijau 35%).
-      canvas.drawArc(
-        kotak.shift(const Offset(0, 3)),
-        mulai,
-        sapuanHijau,
-        false,
-        Paint.from(garis)
-          ..color = const Color(0x59327C53)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
-      );
-      final s = size.width / 112;
-      canvas.drawArc(
-        kotak,
-        mulai,
-        sapuanHijau,
-        false,
-        Paint.from(garis)
-          ..shader = ui.Gradient.linear(Offset(8 * s, 8 * s), Offset(88 * s, 88 * s), const [
-            AppColors.hijau,
-            AppColors.hijauTua,
-          ]),
-      );
-    }
+    if (persen <= 0) return;
+    // Putar supaya busur mulai dari atas (jam 12) dan gradien sapu mengikuti busur.
+    canvas.save();
+    canvas.translate(pusat.dx, pusat.dy);
+    canvas.rotate(-math.pi / 2);
+    canvas.translate(-pusat.dx, -pusat.dy);
+    final sapuan = persen * 2 * math.pi;
+    // Bayangan lembut di bawah busur hijau.
+    canvas.drawArc(
+      kotak,
+      0,
+      sapuan,
+      false,
+      Paint.from(garis)
+        ..color = const Color(0x40327C53)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    canvas.drawArc(
+      kotak,
+      0,
+      sapuan,
+      false,
+      Paint.from(garis)
+        ..shader = ui.Gradient.sweep(
+          pusat,
+          const [AppColors.hijau, AppColors.hijauTua],
+          null,
+          TileMode.clamp,
+          0,
+          math.max(sapuan, 0.01),
+        ),
+    );
+    canvas.restore();
   }
 
   @override

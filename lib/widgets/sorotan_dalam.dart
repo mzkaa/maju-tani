@@ -18,11 +18,14 @@ class SorotanDalam extends CustomPainter {
     canvas.save();
     canvas.clipRRect(bentuk);
     // Area di luar bentuk yang digeser; bagian yang masuk ke bentuk menjadi bayangan.
-    final luar = Path()..addRect((Offset.zero & size).inflate(blur * 2 + dy.abs() + 4));
-    final lubang = Path()..addRRect(bentuk.shift(Offset(0, dy)));
+    // evenOdd (bukan Path.combine): Path.combine tidak andal di Flutter web dan bisa menutup seluruh kotak.
+    final cincin = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect((Offset.zero & size).inflate(blur * 2 + dy.abs() + 4))
+      ..addRRect(bentuk.shift(Offset(0, dy)));
     final paint = Paint()..color = color;
     if (blur > 0) paint.maskFilter = MaskFilter.blur(BlurStyle.normal, blur / 2);
-    canvas.drawPath(Path.combine(PathOperation.difference, luar, lubang), paint);
+    canvas.drawPath(cincin, paint);
     canvas.restore();
   }
 

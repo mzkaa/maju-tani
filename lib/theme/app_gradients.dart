@@ -51,12 +51,6 @@ abstract final class AppGradien {
   );
 
   /// Garis tepi kotak ikon judul: putih 100% → 40%.
-  static const garisIkonJudul = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFFFFF), Color(0x66FFFFFF)],
-  );
-
   /// Tombol utama (M01 dan layar formulir lain).
   static const tombolUtama = GradienFigma(
     awal: _awal,

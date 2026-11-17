@@ -31,8 +31,6 @@ abstract final class AppShadows {
   static final chip = [figma(_hijauGelap.withValues(alpha: 0.06), y: 8, blur: 20, spread: -6)];
 
   /// Bayangan kotak ikon judul seksi.
-  static final ikonJudul = [figma(_hijauGelap.withValues(alpha: 0.10), y: 10, blur: 24, spread: -6)];
-
   /// Bayangan tombol bulat Catat Panen.
   static final tombolBulat = [figma(const Color(0x4711452E), y: 14, blur: 30, spread: -6)];
 }

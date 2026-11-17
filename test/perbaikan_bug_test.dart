@@ -62,6 +62,9 @@ void main() {
       await tester.enterText(find.byType(TextField).at(1), '');
       await tester.tap(find.text('Simpan Perubahan'));
       await tester.pumpAndSettle();
+      expect(find.text('Perubahan tersimpan'), findsOneWidget); // layar berhasil singkat
+      await tester.pump(const Duration(seconds: 2)); // tertutup sendiri
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(store.cariTransaksi('t2')!.pembeli, isNull);
       expect(find.text('Mau catat apa?'), findsOneWidget); // kembali ke Beranda

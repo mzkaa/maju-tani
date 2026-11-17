@@ -11,6 +11,7 @@ import 'data/database.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
 import 'widgets/app_icon.dart';
+import 'widgets/skala_tampilan.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,10 +50,13 @@ class MajuTaniApp extends StatelessWidget {
       // Ukuran huruf dari Pengaturan (M30); "Besar" = ukuran desain Figma.
       builder: (context, child) {
         final skala = context.select<AppStore, double>((s) => s.ukuranHuruf.skala);
+        final skalaLayar = context.select<AppStore, double>((s) => s.ukuranTampilan.skala);
         final mq = MediaQuery.of(context);
+        // Urutan penting: skala tampilan di dalam, supaya ukuran/padding/keyboard yang diperkecil
+        // tidak tertimpa MediaQuery asli.
         return MediaQuery(
           data: mq.copyWith(textScaler: TextScaler.linear(mq.textScaler.scale(1) * skala)),
-          child: child!,
+          child: SkalaTampilan(skala: skalaLayar, child: child!),
         );
       },
     );

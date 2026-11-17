@@ -22,6 +22,22 @@ void main() {
     return AppStore.dariDatabase(db, await db.muat());
   }
 
+  test('Cincin Beranda menghitung pembayaran bulan lalu atas tagihan yang masih ada', () async {
+    final store = await buka();
+    store.ubahDraft((d) {
+      d.komoditas = 'Bayam';
+      d.beratKg = 50;
+      d.pengepul = 'Pak Dadang';
+    });
+    final id = store.simpanPanen();
+    final bulanLalu = DateTime(store.hariIni.year, store.hariIni.month, 0);
+    store.lengkapiPenjualan(id, tanggal: bulanLalu, beratKg: 50, hargaPerKg: 4000); // Rp200.000
+    expect(store.persenSudahMasuk, 0);
+    store.catatPembayaran(id, tanggal: bulanLalu, jumlah: 50000);
+    expect(store.uangMasuk, 0); // belum ada uang masuk bulan ini...
+    expect(store.persenSudahMasuk, 0.25); // ...tapi cincin tetap menunjukkan 25% sudah dibayar.
+  });
+
   test('Data tetap ada setelah aplikasi dibuka ulang', () async {
     final pertama = await buka();
     expect(pertama.transaksi, isEmpty);
@@ -38,6 +54,7 @@ void main() {
     pertama.tambahKomoditas(const Komoditas(nama: 'Tomat'));
     pertama.ubahKomoditas('Bayam', const Komoditas(nama: 'Bayam Hijau'));
     pertama.aturUkuranHuruf(UkuranHuruf.sangatBesar);
+    pertama.aturUkuranTampilan(UkuranTampilan.kecil);
     pertama.tandaiDibaca('bayar-$id');
     await pertama.selesaiMenyimpan;
 
@@ -52,6 +69,7 @@ void main() {
     expect(t.status, StatusTransaksi.dibayarSebagian);
     expect(kedua.komoditas.map((k) => k.nama), ['Sawi', 'Bayam Hijau', 'Kangkung', 'Selada', 'Daun Bawang', 'Tomat']);
     expect(kedua.ukuranHuruf, UkuranHuruf.sangatBesar);
+    expect(kedua.ukuranTampilan, UkuranTampilan.kecil);
   });
 
   test('Draft Catat Panen kosong dan riwayat harga dari penjualan', () async {

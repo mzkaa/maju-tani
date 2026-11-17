@@ -17,12 +17,14 @@ import '../widgets/header_ringkas.dart';
 import '../widgets/isi_formulir.dart';
 import '../widgets/isian_kaca.dart';
 import '../widgets/kerangka_halaman.dart';
+import '../widgets/lingkaran_sukses.dart';
+import '../widgets/muncul_bertahap.dart';
 import '../widgets/kotak_kaca.dart';
 import '../widgets/kotak_lembut.dart';
 import '../widgets/tombol.dart';
 import 'catat_panen_screens.dart';
 
-/// Baris nama sayur + lencana status (bagian atas kartu info M09/M10).
+/// Baris nama sayur + status: ikon status berwarna, nama, dan status kecil (bagian atas kartu info M09/M10).
 class _NamaDanStatus extends StatelessWidget {
   const _NamaDanStatus(this.t);
 
@@ -30,18 +32,32 @@ class _NamaDanStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      crossAxisAlignment: WrapCrossAlignment.center,
+    return Row(
       children: [
-        Text(t.komoditas, style: AppText.judulBagian),
-        BadgeStatus(status: t.status, tinggi: 38),
+        Container(
+          width: 42,
+          height: 42,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.status.latar, borderRadius: BorderRadius.circular(13)),
+          child: AppIcon(t.status.ikon, size: 21, color: t.status.warna),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.komoditas, style: AppText.gaya(17, FontWeight.w800, AppColors.teksUtama)),
+              const SizedBox(height: 2),
+              Text(t.status.label, style: AppText.gaya(12, FontWeight.w600, t.status.warna)),
+            ],
+          ),
+        ),
       ],
     );
   }
 }
 
-/// Kotak catatan biru dengan ikon info (M07, M09).
+/// Catatan kecil dengan ikon info, tanpa kotak (M07, M09).
 class CatatanBiru extends StatelessWidget {
   const CatatanBiru(this.teks, {super.key});
 
@@ -49,16 +65,72 @@ class CatatanBiru extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.biruLatar, borderRadius: BorderRadius.circular(14)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppIcon(Ikon.info, size: 24, color: AppColors.biruTeks),
-          const SizedBox(width: 12),
-          Expanded(child: Text(teks, style: AppText.pesanBantuan)),
+          const Padding(
+            padding: EdgeInsets.only(top: 1),
+            child: AppIcon(Ikon.info, size: 16, color: AppColors.teksKedua),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(teks, style: AppText.gaya(12, FontWeight.w500, AppColors.teksKedua, tinggi: 1.4))),
         ],
+      ),
+    );
+  }
+}
+
+/// Total penjualan yang dihitung otomatis (berat × harga), tampil besar dan berubah saat isian diketik.
+class _KartuTotal extends StatelessWidget {
+  const _KartuTotal({required this.berat, required this.harga});
+
+  final int berat;
+  final int harga;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = berat * harga;
+    final ada = total > 0;
+    return Semantics(
+      liveRegion: true,
+      label: 'Total penjualan ${Format.rupiah(total)}',
+      excludeSemantics: true,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: ada
+              ? const LinearGradient(colors: [AppColors.hijau, AppColors.hijauTua])
+              : const LinearGradient(colors: [Color(0x99FFFFFF), Color(0x99FFFFFF)]),
+          border: Border.all(color: ada ? const Color(0x33FFFFFF) : const Color(0xCCFFFFFF)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total penjualan',
+                    style: AppText.gaya(12, FontWeight.w600, ada ? const Color(0xCCFFFFFF) : AppColors.teksKedua),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    ada ? '${Format.kg(berat)} × ${Format.rupiah(harga)}' : 'Isi berat dan harga',
+                    style: AppText.gaya(12, FontWeight.w500, ada ? const Color(0xB3FFFFFF) : AppColors.teksKedua),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              Format.rupiah(total),
+              style: AppText.gaya(22, FontWeight.w800, ada ? const Color(0xFFFFFFFF) : AppColors.teksKedua),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -85,9 +157,7 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
   late DateTime _tanggal = _store.hariIni;
   // Data contoh: isian awal seperti di Figma.
   late final _berat = TextEditingController(text: _store.dataContoh ? '${SampleData.contohBeratTerjual}' : '');
-  late final _harga = TextEditingController(
-    text: _store.dataContoh ? Format.rupiah(SampleData.contohHargaJual) : '',
-  );
+  late final _harga = TextEditingController(text: _store.dataContoh ? Format.rupiah(SampleData.contohHargaJual) : '');
   String? _galatBerat;
   String? _galatHarga;
 
@@ -107,7 +177,7 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
     super.dispose();
   }
 
-  void _simpan(Transaksi t) {
+  Future<void> _simpan(Transaksi t) async {
     // Berat harus angka bulat: "117,5" ditolak, bukan dibaca 1175.
     final berat = int.tryParse(_berat.text.trim());
     final harga = Format.angka(_harga.text);
@@ -119,7 +189,8 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
     });
     if (_galatBerat != null || _galatHarga != null) return;
     _store.lengkapiPenjualan(t.id, tanggal: _tanggal, beratKg: berat!, hargaPerKg: harga!);
-    context.go(Rute.riwayat);
+    await tampilkanBerhasil(context, 'Penjualan tersimpan');
+    if (mounted) context.go(Rute.riwayat);
   }
 
   @override
@@ -127,8 +198,6 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
     final t = context.watch<AppStore>().cariTransaksi(widget.id);
     final berat = int.tryParse(_berat.text.trim()) ?? 0;
     final harga = Format.angka(_harga.text) ?? 0;
-    final total = berat * harga;
-
     return KerangkaHalaman(
       header: const HeaderRingkas(
         judul: 'Lengkapi Penjualan',
@@ -147,16 +216,16 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
               jarak: 14,
               children: [
                 KotakKaca(
-                  radius: 14,
-                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+                  radius: 18,
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _NamaDanStatus(t),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         'Panen ${Format.tanggal(t.tanggalPanen)} · ${Format.kg(t.beratPanenKg)} · No. ${t.nomor}',
-                        style: AppText.keteranganKartu,
+                        style: AppText.gaya(12, FontWeight.w500, AppColors.teksKedua),
                       ),
                     ],
                   ),
@@ -191,13 +260,7 @@ class _LengkapiPenjualanScreenState extends State<LengkapiPenjualanScreen> {
                   bantuan: 'Harga yang diterima dari pengepul',
                   galat: _galatHarga,
                 ),
-                IsianKaca(
-                  label: 'Total penjualan (dihitung sendiri)',
-                  ikon: Ikon.banknote,
-                  otomatis: true,
-                  nilaiTetap: Format.rupiah(total),
-                  bantuan: '${Format.kg(berat)} × ${Format.rupiah(harga)} = ${Format.rupiah(total)}',
-                ),
+                _KartuTotal(berat: berat, harga: harga),
                 const CatatanBiru(
                   'Setelah disimpan, status menjadi Menunggu Pembayaran sampai uang dari pengepul dicatat.',
                 ),
@@ -420,17 +483,29 @@ class PembayaranTersimpanScreen extends StatelessWidget {
           children: [
             const Center(child: LingkaranSukses()),
             const SizedBox(height: 11),
-            Text('Pembayaran tersimpan', style: AppText.judulSukses, textAlign: TextAlign.center),
+            MunculBertahap(
+              jeda: const Duration(milliseconds: 350),
+              child: Text('Pembayaran tersimpan', style: AppText.judulSukses, textAlign: TextAlign.center),
+            ),
             if (t != null && bayar != null) ...[
               const SizedBox(height: 11),
-              Text(
-                '${t.komoditas}: uang ${Format.rupiah(bayar.jumlah)} diterima ${Format.tanggalSingkat(bayar.tanggal)}. '
-                '${t.status == StatusTransaksi.lunas ? 'Semua sudah dibayar.' : 'Sisa ${Format.rupiah(t.sisaTagihan)}.'}',
-                style: AppText.keteranganKartu,
-                textAlign: TextAlign.center,
+              MunculBertahap(
+                jeda: const Duration(milliseconds: 450),
+                child: Text(
+                  '${t.komoditas}: uang ${Format.rupiah(bayar.jumlah)} diterima ${Format.tanggalSingkat(bayar.tanggal)}. '
+                  '${t.status == StatusTransaksi.lunas ? 'Semua sudah dibayar.' : 'Sisa ${Format.rupiah(t.sisaTagihan)}.'}',
+                  style: AppText.keteranganKartu,
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 11),
-              KartuStatusGelap(status: t.status, catatan: 'Riwayat pembayaran bisa dilihat di rincian transaksi.'),
+              MunculBertahap(
+                jeda: const Duration(milliseconds: 550),
+                child: KartuStatusGelap(
+                  status: t.status,
+                  catatan: 'Riwayat pembayaran bisa dilihat di rincian transaksi.',
+                ),
+              ),
             ],
           ],
         ),

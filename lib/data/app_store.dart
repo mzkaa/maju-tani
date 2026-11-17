@@ -8,6 +8,7 @@ import 'database.dart';
 import 'dokumen.dart';
 import 'format.dart';
 import 'kata_sandi.dart';
+import 'prakiraan.dart';
 
 import '../models/draft_panen.dart';
 import '../models/harga_bulanan.dart';
@@ -25,6 +26,18 @@ enum UkuranHuruf {
 
   const UkuranHuruf(this.skala);
   final double skala;
+}
+
+/// Ukuran seluruh tampilan (M30): memperkecil teks, kotak, ikon, dan jarak sekaligus.
+/// Desain Figma = [normal]; bawaan aplikasi [sedang] supaya tidak terlalu besar di mata.
+enum UkuranTampilan {
+  kecil(0.8, 'Kecil'),
+  sedang(0.88, 'Sedang'),
+  normal(1, 'Normal');
+
+  const UkuranTampilan(this.skala, this.label);
+  final double skala;
+  final String label;
 }
 
 /// Pilihan periode di Laporan.
@@ -56,6 +69,7 @@ class AppStore extends ChangeNotifier {
       _namaPengguna = data.akun?.namaPengguna,
       _sudahMasuk = data.akun != null && data.pengaturan[_kunciSesi] == '1' {
     ukuranHuruf = UkuranHuruf.values.asNameMap()[data.pengaturan[_kunciUkuranHuruf]] ?? ukuranHuruf;
+    ukuranTampilan = UkuranTampilan.values.asNameMap()[data.pengaturan[_kunciUkuranTampilan]] ?? ukuranTampilan;
     _terakhirDicadangkan = DateTime.tryParse(data.pengaturan[_kunciCadangan] ?? '');
     _notifDibaca.addAll(data.notifDibaca);
   }
@@ -183,10 +197,16 @@ class AppStore extends ChangeNotifier {
   /// Total tagihan yang belum dibayar pembeli.
   int get belumDibayar => _transaksi.fold(0, (s, t) => s + (t.sudahDijual ? t.sisaTagihan : 0));
 
-  /// Bagian uang yang sudah masuk dibanding semua uang (masuk + belum dibayar).
+  /// Bagian penjualan yang sudah dibayar (cincin Beranda). Dihitung per catatan: penjualan dalam periode
+  /// ditambah penjualan lama yang tagihannya masih ada, supaya pembilang & penyebut memakai catatan yang sama.
   double get persenSudahMasuk {
-    final total = uangMasuk + belumDibayar;
-    return total == 0 ? 0 : uangMasuk / total;
+    var total = 0, dibayar = 0;
+    for (final t in _transaksi) {
+      if (!t.sudahDijual || (!_dalamPeriode(t.tanggalJual!) && t.sisaTagihan <= 0)) continue;
+      total += t.totalPenjualan;
+      dibayar += t.totalDibayar;
+    }
+    return total == 0 ? 0 : (dibayar / total).clamp(0, 1);
   }
 
   /// Total berat panen.
@@ -228,6 +248,10 @@ class AppStore extends ChangeNotifier {
 
   List<HargaBulanan> riwayatHarga(String komoditas) =>
       _hargaContoh?[komoditas] ?? _hargaDariPenjualan(komoditas);
+
+  /// Prakiraan harga per kg bulan depan dari riwayat harga bulanan; null bila data kurang dari 2 bulan.
+  HasilPrakiraan? prakiraanHarga(String komoditas) =>
+      Prakiraan.hitung([for (final h in riwayatHarga(komoditas)) h.hargaPerKg]);
 
   /// Rata-rata harga per kg tiap bulan dari penjualan; 6 bulan terakhir yang ada penjualannya.
   List<HargaBulanan> _hargaDariPenjualan(String nama) {
@@ -385,6 +409,16 @@ class AppStore extends ChangeNotifier {
   void aturUkuranHuruf(UkuranHuruf u) {
     ukuranHuruf = u;
     _tulis((db) => db.simpanPengaturan(_kunciUkuranHuruf, u.name));
+    notifyListeners();
+  }
+
+  static const _kunciUkuranTampilan = 'ukuran_tampilan';
+
+  UkuranTampilan ukuranTampilan = UkuranTampilan.sedang;
+
+  void aturUkuranTampilan(UkuranTampilan u) {
+    ukuranTampilan = u;
+    _tulis((db) => db.simpanPengaturan(_kunciUkuranTampilan, u.name));
     notifyListeners();
   }
 

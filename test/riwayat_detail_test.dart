@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maju_tani/router.dart';
 
+import 'package:maju_tani/widgets/kartu_transaksi.dart';
+
 import 'figma_helper.dart';
 
 void main() {
@@ -13,27 +15,13 @@ void main() {
       'Semua (6)': Offset(46, 150),
       'Belum dijual (1)': Offset(139, 151),
       'Belum lunas (2)': Offset(263, 151),
-      'Menunggu Penjualan': Offset(121, 222),
-      'Panen 03 Nov 2026 · 120 kg': Offset(32, 262),
-      'Berat panen': Offset(32, 311.5),
-      'Belum ada': Offset(200.5, 337.5),
-      'Menunggu Pembayaran': Offset(139, 473.5),
-      'Panen 01 Nov 2026 · 92 kg terjual': Offset(32, 513.5),
-      'Kangkung': Offset(32, 722),
-      'Panen 30 Okt 2026 · 80 kg terjual': Offset(32, 765),
-      'Rp 320.000': Offset(32, 840.5),
+      'Kangkung': Offset(84, 370),
+      'Rp 320.000': Offset(251, 372),
     });
-    // Figma: y 387,5. Di aplikasi 1 px lebih tinggi karena chip "Lunas" disamakan dengan chip kaca
-    // lain (di Figma chip itu bergaris 1,5 sehingga deret chip 1 px lebih tinggi).
-    expect(
-      tester.getTopLeft(find.text('Lihat rincian').first),
-      within(distance: 0.6, from: const Offset(133.5, 386.5)),
-    );
-
     // Saring "Belum lunas" hanya menampilkan Bayam & Kangkung.
     await tester.tap(find.text('Belum lunas (2)'));
     await tester.pump();
-    expect(find.text('Lihat rincian'), findsNWidgets(2));
+    expect(find.byType(KartuTransaksi), findsNWidgets(2));
   });
 
   testWidgets('M04 Detail Transaksi sesuai posisi Figma', (tester) async {

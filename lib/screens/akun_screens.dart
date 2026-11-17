@@ -18,6 +18,7 @@ import '../widgets/header_ringkas.dart';
 import '../widgets/isi_formulir.dart';
 import '../widgets/isian_kaca.dart';
 import '../widgets/kerangka_halaman.dart';
+import '../widgets/lingkaran_sukses.dart';
 import '../widgets/kotak_kaca.dart';
 import '../widgets/layar_tambahan.dart';
 import '../widgets/tombol.dart';
@@ -366,7 +367,9 @@ class _UbahSandiScreenState extends State<UbahSandiScreen> {
       _sibuk = false;
       _galatLama = berhasil ? null : 'Kata sandi lama salah';
     });
-    if (berhasil) context.kembali();
+    if (!berhasil) return;
+    await tampilkanBerhasil(context, 'Kata sandi diganti');
+    if (mounted) context.kembali();
   }
 
   @override
@@ -498,6 +501,21 @@ class PengaturanScreen extends StatelessWidget {
                       (UkuranHuruf.sangatBesar, 'Sangat besar'),
                     ])
                       ChipPil(teks: teks, aktif: store.ukuranHuruf == u, onTap: () => store.aturUkuranHuruf(u)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('Ukuran tampilan', style: AppText.tebal14),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final u in UkuranTampilan.values)
+                      ChipPil(
+                        teks: u.label,
+                        aktif: store.ukuranTampilan == u,
+                        onTap: () => store.aturUkuranTampilan(u),
+                      ),
                   ],
                 ),
               ],

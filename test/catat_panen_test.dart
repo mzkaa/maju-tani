@@ -14,12 +14,11 @@ void main() {
       'Isi setelah sayur ditimbang pengepul': Offset(78, 84),
       'Langkah 1 dari 3: Pilih sayur': Offset(17, 142),
       'Sayur apa yang dipanen?': Offset(17, 204),
-      'Sawi': Offset(76.5, 316),
-      'Dipilih': Offset(78, 356),
-      'Bayam': Offset(244.5, 314),
-      'Kangkung': Offset(52.5, 474),
-      'Daun Bawang': Offset(36, 596),
-      'Sayur tidak ada di daftar? Tambahkan dulu di menu Komoditas.': Offset(66, 667),
+      'Sawi': Offset(82.9, 314.3),
+      'Bayam': Offset(251.2, 315.5),
+      'Kangkung': Offset(62.5, 431.5),
+      'Daun Bawang': Offset(49.3, 547.5),
+      'Sayur tidak ada di daftar? Tambahkan dulu di menu Komoditas.': Offset(45, 598),
       'Lanjut': Offset(186.5, 786.5),
     });
 
@@ -52,8 +51,8 @@ void main() {
       'Berat': Offset(32, 364),
       'Pengepul': Offset(32, 413.5),
       'Harga jual diisi nanti, setelah pengepul menjual sayur di pasar. Status awal: Menunggu Penjualan.': Offset(
-        65,
-        484.5,
+        45,
+        472.5,
       ),
       'Ya, Simpan Data Panen': Offset(118, 727.5),
       'Ada yang salah, ubah': Offset(125, 786.5),

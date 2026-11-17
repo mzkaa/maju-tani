@@ -15,7 +15,7 @@ import 'kotak_kaca.dart';
 ///
 /// Kondisi "Fokus" di frame Figma tampil sama dengan kondisi biasa,
 /// jadi tidak ada perubahan tampilan saat isian sedang diketik.
-class IsianKaca extends StatelessWidget {
+class IsianKaca extends StatefulWidget {
   const IsianKaca({
     super.key,
     required this.label,
@@ -66,59 +66,92 @@ class IsianKaca extends StatelessWidget {
   final FocusNode? focusNode;
 
   @override
+  State<IsianKaca> createState() => _IsianKacaState();
+}
+
+class _IsianKacaState extends State<IsianKaca> {
+  FocusNode? _milik;
+  FocusNode get _fokus => widget.focusNode ?? (_milik ??= FocusNode());
+
+  @override
+  void dispose() {
+    _milik?.dispose();
+    super.dispose();
+  }
+
+  /// Mengetuk di mana pun di dalam kotak bulat (bukan hanya baris teksnya) membuka keyboard.
+  void _ketukKotak() {
+    _fokus.requestFocus();
+    SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+  }
+
+  /// Isian yang diketik: seluruh kotak menangkap ketukan. Isian tanggal ([IsianKaca.onTap]) sudah punya aksi sendiri.
+  Widget _tangkapKetukan(Widget kotak) => widget.onTap != null || widget.nilaiTetap != null
+      ? kotak
+      : GestureDetector(behavior: HitTestBehavior.opaque, onTap: _ketukKotak, child: kotak);
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: AppText.labelIsian),
+        Text(widget.label, style: AppText.labelIsian),
         const SizedBox(height: 8),
-        KotakKaca(
-          radius: 16,
-          height: 64,
-          warna: otomatis ? const Color(0x80FFFFFF) : const Color(0xADFFFFFF),
-          garis: otomatis ? null : AppGradien.garisKaca,
-          warnaGaris: fokusBiru ? AppColors.fokusBiru : (otomatis ? const Color(0xD9FFFFFF) : null),
-          tebalGaris: fokusBiru ? 3 : 1,
-          bayangan: otomatis ? const [] : null,
-          sorotan: otomatis ? null : const Color(0xB3FFFFFF),
-          kaburKaca: otomatis ? 16 : 10,
-          onTap: onTap,
-          label: onTap == null ? null : '$label: $nilaiTetap',
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              AppIcon(ikon, size: 24, color: AppColors.teksKedua),
-              const SizedBox(width: 12),
-              Expanded(
-                child: nilaiTetap != null
-                    ? Text(nilaiTetap!, style: AppText.nilaiIsian, maxLines: 1, overflow: TextOverflow.ellipsis)
-                    : Semantics(
-                        label: label,
-                        child: TextField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          obscureText: sembunyikanTeks,
+        _tangkapKetukan(
+          KotakKaca(
+            radius: 16,
+            height: 64,
+            warna: widget.otomatis ? const Color(0x80FFFFFF) : const Color(0xADFFFFFF),
+            garis: widget.otomatis ? null : AppGradien.garisKaca,
+            warnaGaris: widget.fokusBiru ? AppColors.fokusBiru : (widget.otomatis ? const Color(0xD9FFFFFF) : null),
+            tebalGaris: widget.fokusBiru ? 3 : 1,
+            bayangan: widget.otomatis ? const [] : null,
+            sorotan: widget.otomatis ? null : const Color(0xB3FFFFFF),
+            kaburKaca: widget.otomatis ? 16 : 10,
+            onTap: widget.onTap,
+            label: widget.onTap == null ? null : '${widget.label}: ${widget.nilaiTetap}',
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                AppIcon(widget.ikon, size: 24, color: AppColors.teksKedua),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: widget.nilaiTetap != null
+                      ? Text(
+                          widget.nilaiTetap!,
                           style: AppText.nilaiIsian,
-                          cursorColor: AppColors.hijauTua,
-                          keyboardType: keyboardType,
-                          textInputAction: textInputAction,
-                          autofillHints: autofillHints,
-                          onSubmitted: onSubmitted,
-                          inputFormatters: inputFormatters,
-                          decoration: const InputDecoration.collapsed(hintText: null),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : Semantics(
+                          label: widget.label,
+                          child: TextField(
+                            controller: widget.controller,
+                            focusNode: _fokus,
+                            obscureText: widget.sembunyikanTeks,
+                            style: AppText.nilaiIsian,
+                            cursorColor: AppColors.hijauTua,
+                            keyboardType: widget.keyboardType,
+                            textInputAction: widget.textInputAction,
+                            autofillHints: widget.autofillHints,
+                            onSubmitted: widget.onSubmitted,
+                            inputFormatters: widget.inputFormatters,
+                            scrollPadding: const EdgeInsets.only(bottom: 120),
+                            decoration: const InputDecoration.collapsed(hintText: null),
+                          ),
                         ),
-                      ),
-              ),
-              if (akhiran != null) ...[const SizedBox(width: 12), akhiran!],
-            ],
+                ),
+                if (widget.akhiran != null) ...[const SizedBox(width: 12), widget.akhiran!],
+              ],
+            ),
           ),
         ),
-        if (galat != null) ...[
+        if (widget.galat != null) ...[
           const SizedBox(height: 8),
-          Text(galat!, style: AppText.bantuanIsian.copyWith(color: AppColors.galat)),
-        ] else if (bantuan != null) ...[
+          Text(widget.galat!, style: AppText.bantuanIsian.copyWith(color: AppColors.galat)),
+        ] else if (widget.bantuan != null) ...[
           const SizedBox(height: 8),
-          Text(bantuan!, style: AppText.bantuanIsian),
+          Text(widget.bantuan!, style: AppText.bantuanIsian),
         ],
       ],
     );

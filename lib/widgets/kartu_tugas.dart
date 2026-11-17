@@ -5,10 +5,44 @@ import '../theme/app_text.dart';
 import 'app_icon.dart';
 import 'kotak_kaca.dart';
 
-/// Kartu kaca berisi ikon berwarna, judul + keterangan, dan bulatan panah.
-/// Dipakai di daftar "Perlu diurus" Beranda.
+/// Satu kartu kaca berisi daftar tugas ("Perlu diurus" di Beranda), dipisah garis tipis.
+/// Bila [tugas] kosong, tampil satu baris "semua beres".
 class KartuTugas extends StatelessWidget {
-  const KartuTugas({
+  const KartuTugas({super.key, required this.tugas});
+
+  final List<BarisTugas> tugas;
+
+  @override
+  Widget build(BuildContext context) {
+    return KotakKaca(
+      radius: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      child: tugas.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                children: [
+                  const AppIcon(Ikon.checkCircle, size: 20, color: AppColors.hijau),
+                  const SizedBox(width: 10),
+                  Text('Semua beres, tidak ada yang perlu diurus', style: AppText.keterangan),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                for (final (i, t) in tugas.indexed) ...[
+                  if (i > 0) Container(height: 1, color: const Color(0x140F1F19)), // garis tipis 8%
+                  t,
+                ],
+              ],
+            ),
+    );
+  }
+}
+
+/// Satu baris tugas: ikon berwarna, judul + keterangan, dan panah.
+class BarisTugas extends StatelessWidget {
+  const BarisTugas({
     super.key,
     required this.ikon,
     required this.warnaIkon,
@@ -27,40 +61,40 @@ class KartuTugas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KotakKaca(
-      radius: 18,
-      padding: const EdgeInsets.all(12),
-      onTap: onTap,
+    return Semantics(
+      button: true,
       label: '$judul, $keterangan',
-      child: Row(
-        children: [
-          Container(
-            width: 45,
-            height: 45,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: latarIkon, borderRadius: BorderRadius.circular(14)),
-            child: AppIcon(ikon, size: 28, color: warnaIkon, tebal: 2.2),
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: latarIkon, borderRadius: BorderRadius.circular(12)),
+                child: AppIcon(ikon, size: 20, color: warnaIkon),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(judul, style: AppText.judulTugas, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(keterangan, style: AppText.keterangan, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const AppIcon(Ikon.chevronRight, size: 18, color: AppColors.teksKedua),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(judul, style: AppText.judulTugas),
-                const SizedBox(height: 2),
-                Text(keterangan, style: AppText.keterangan),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: AppColors.bulatPanah, borderRadius: BorderRadius.circular(16)),
-            child: const AppIcon(Ikon.chevronRight, size: 22, color: AppColors.ikonGelap, tebal: 2.4),
-          ),
-        ],
+        ),
       ),
     );
   }

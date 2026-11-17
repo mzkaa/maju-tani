@@ -32,12 +32,6 @@ abstract final class AppText {
   );
 
   // Judul seksi: label kapital + judul
-  static final labelKapital = _dasar.copyWith(
-    fontSize: 12,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 1.44,
-    color: AppColors.teksLabel,
-  );
   static final judulSeksi = _dasar.copyWith(
     fontSize: 19,
     fontWeight: FontWeight.w800,
@@ -47,12 +41,6 @@ abstract final class AppText {
   );
 
   // Kartu
-  static final judulMenu = _dasar.copyWith(
-    fontSize: 17,
-    fontWeight: FontWeight.w800,
-    height: 1.25,
-    color: AppColors.teksJudul,
-  );
   static final judulTugas = _dasar.copyWith(
     fontSize: 16,
     fontWeight: FontWeight.w800,
@@ -71,7 +59,6 @@ abstract final class AppText {
   static final angkaSaldo = _dasar.copyWith(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.teksUtama);
   static final persen = _dasar.copyWith(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.hijauTua);
   static final legenda = _dasar.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.teksKeduaAlt);
-  static final angkaChip = _dasar.copyWith(fontSize: 16, fontWeight: FontWeight.w800);
 
   // Chip tanggal & tombol kecil
   static final tanggal = _dasar.copyWith(
@@ -79,12 +66,6 @@ abstract final class AppText {
     fontWeight: FontWeight.w600,
     height: 1.35,
     color: AppColors.hijauTua,
-  );
-  static final tombolKecil = _dasar.copyWith(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    height: 1.35,
-    color: AppColors.hijauTombolTeks,
   );
 
   // Kartu harga
@@ -180,23 +161,10 @@ abstract final class AppText {
     height: 28 / 13,
     color: AppColors.teksJudul,
   );
-  static final namaSayur = _dasar.copyWith(
-    fontSize: 19,
-    fontWeight: FontWeight.w800,
-    height: 30 / 19,
-    letterSpacing: -0.095,
-    color: AppColors.teksJudul,
-  );
   static final keteranganKartu = _dasar.copyWith(
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 28 / 16,
-    color: AppColors.teksKedua,
-  );
-  static final labelAngka = _dasar.copyWith(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    height: 24 / 14,
     color: AppColors.teksKedua,
   );
   static final nilaiAngka = _dasar.copyWith(
@@ -204,12 +172,6 @@ abstract final class AppText {
     fontWeight: FontWeight.w700,
     height: 28 / 16,
     color: AppColors.teksJudul,
-  );
-  static final lihatRincian = _dasar.copyWith(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-    height: 28 / 16,
-    color: AppColors.hijauTuaAlt,
   );
   static final tombolGaris = _dasar.copyWith(
     fontSize: 17,
@@ -308,26 +270,6 @@ abstract final class AppText {
   );
 
   // Laporan & Komoditas (M11–M13)
-  static final angkaKartu = _dasar.copyWith(
-    fontSize: 22,
-    fontWeight: FontWeight.w800,
-    height: 34 / 22,
-    letterSpacing: -0.22,
-    color: AppColors.teksJudul,
-  );
-  static final namaKomoditas = _dasar.copyWith(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.teksUtama);
-  static final lencanaKecil = _dasar.copyWith(fontSize: 11, fontWeight: FontWeight.w700);
-  static final hargaKomoditas = _dasar.copyWith(
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    color: const Color(0xD90F1F19),
-  );
-  static final panenKomoditas = _dasar.copyWith(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    color: const Color(0x990F1F19),
-  );
-  static final chipKecil = _dasar.copyWith(fontSize: 13, fontWeight: FontWeight.w700);
 
   // Layar tambahan (M15–M30)
 

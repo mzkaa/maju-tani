@@ -20,7 +20,8 @@ import '../widgets/isi_formulir.dart';
 import '../widgets/isian_kaca.dart';
 import '../widgets/kerangka_halaman.dart';
 import '../widgets/kotak_kaca.dart';
-import '../widgets/kotak_lembut.dart';
+import '../widgets/lingkaran_sukses.dart';
+import '../widgets/muncul_bertahap.dart';
 import '../widgets/tombol.dart';
 import 'penjualan_pembayaran_screens.dart';
 
@@ -88,28 +89,15 @@ class _PilihSayurScreenState extends State<PilihSayurScreen> {
               );
             },
           ),
-          KotakLembut(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const AppIcon(Ikon.info, size: 24, color: AppColors.teksKedua),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Sayur tidak ada di daftar? Tambahkan dulu di menu Komoditas.',
-                    style: AppText.pesanBantuan,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const CatatanBiru('Sayur tidak ada di daftar? Tambahkan dulu di menu Komoditas.'),
         ],
       ),
     );
   }
 }
 
+/// Ubin pilihan sayur. Semua ubin sama tinggi; yang dipilih berwarna hijau muda dengan ikon centang
+/// dan sedikit memantul saat diketuk.
 class _PilihanSayur extends StatelessWidget {
   const _PilihanSayur({required this.nama, required this.lebar, required this.dipilih, required this.onTap});
 
@@ -121,11 +109,12 @@ class _PilihanSayur extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isi = Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 42,
-          height: 42,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 40,
+          height: 40,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: dipilih ? AppColors.headerTengah : AppColors.pilihanIkonLatar,
@@ -133,43 +122,57 @@ class _PilihanSayur extends StatelessWidget {
           ),
           child: AppIcon(
             dipilih ? Ikon.check : Ikon.leaf,
-            size: 28,
+            size: 22,
             color: dipilih ? const Color(0xFFFFFFFF) : AppColors.hijauTuaAlt,
           ),
         ),
         const SizedBox(height: 10),
         Text(
           nama,
-          style: AppText.judulBagian.copyWith(color: dipilih ? AppColors.hijauTuaAlt : AppColors.teksJudul),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppText.gaya(15, FontWeight.w800, dipilih ? AppColors.hijauTuaAlt : AppColors.teksUtama),
           textAlign: TextAlign.center,
         ),
-        if (dipilih) ...[const SizedBox(height: 10), Text('Dipilih', style: AppText.dipilih)],
       ],
     );
 
-    if (!dipilih) {
-      return KotakKaca(
-        radius: 16,
-        width: lebar,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
-        onTap: onTap,
-        label: nama,
-        child: isi,
-      );
-    }
+    final ubin = dipilih
+        ? Container(
+            width: lebar,
+            height: 104,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: AppColors.lunasLatar.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.headerTengah, width: 2),
+            ),
+            child: isi,
+          )
+        : KotakKaca(
+            radius: 18,
+            width: lebar,
+            height: 104,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: isi,
+          );
+
     return Semantics(
       button: true,
-      selected: true,
+      selected: dipilih,
       label: nama,
-      child: Container(
-        width: lebar,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
-        decoration: BoxDecoration(
-          color: AppColors.lunasLatar,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.headerTengah, width: 3),
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: TweenAnimationBuilder<double>(
+          key: ValueKey(dipilih),
+          tween: Tween(begin: dipilih ? 0.92 : 1, end: 1),
+          duration: const Duration(milliseconds: 550),
+          curve: Curves.elasticOut,
+          builder: (context, skala, child) => Transform.scale(scale: skala, child: child),
+          child: ubin,
         ),
-        child: isi,
       ),
     );
   }
@@ -397,61 +400,31 @@ class PanenTersimpanScreen extends StatelessWidget {
           children: [
             const Center(child: LingkaranSukses()),
             const SizedBox(height: 11),
-            Text('Data panen tersimpan', style: AppText.judulSukses, textAlign: TextAlign.center),
+            MunculBertahap(
+              jeda: const Duration(milliseconds: 350),
+              child: Text('Data panen tersimpan', style: AppText.judulSukses, textAlign: TextAlign.center),
+            ),
             if (t != null) ...[
               const SizedBox(height: 11),
-              Text(
-                '${t.komoditas} ${Format.kg(t.beratPanenKg)}, panen ${Format.hariTanggalTanpaKoma(t.tanggalPanen)}, sudah masuk ke Riwayat.',
-                style: AppText.keteranganKartu,
-                textAlign: TextAlign.center,
+              MunculBertahap(
+                jeda: const Duration(milliseconds: 450),
+                child: Text(
+                  '${t.komoditas} ${Format.kg(t.beratPanenKg)}, panen ${Format.hariTanggalTanpaKoma(t.tanggalPanen)}, sudah masuk ke Riwayat.',
+                  style: AppText.keteranganKartu,
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 11),
-              KartuStatusGelap(
-                status: t.status,
-                catatan: 'Nanti, setelah ada kabar harga dari pengepul, tekan "Lengkapi Penjualan" di Beranda.',
+              MunculBertahap(
+                jeda: const Duration(milliseconds: 550),
+                child: KartuStatusGelap(
+                  status: t.status,
+                  catatan: 'Nanti, setelah ada kabar harga dari pengepul, tekan "Lengkapi Penjualan" di Beranda.',
+                ),
               ),
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Lingkaran centang besar di layar "berhasil" (M08, M14, M27).
-class LingkaranSukses extends StatelessWidget {
-  const LingkaranSukses({
-    super.key,
-    this.warnaDalam = AppColors.headerTengah,
-    this.ukuranCentang = 45,
-    this.tebalCentang = 2,
-  });
-
-  final Color warnaDalam;
-  final double ukuranCentang;
-  final double tebalCentang;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 112,
-      height: 112,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: const Color(0x739CE8BF), // 45%
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xB3FFFFFF)), // putih 70%
-      ),
-      child: Container(
-        width: 76,
-        height: 76,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: warnaDalam,
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.figma(const Color(0x4D0D4026), y: 10, blur: 24, spread: -6)],
-        ),
-        child: AppIcon(Ikon.check, size: ukuranCentang, color: const Color(0xFFFFFFFF), tebal: tebalCentang),
       ),
     );
   }

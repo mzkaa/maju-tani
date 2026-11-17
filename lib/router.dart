@@ -20,6 +20,7 @@ import 'screens/penjualan_pembayaran_screens.dart';
 import 'screens/riwayat_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/ubah_transaksi_screen.dart';
+import 'widgets/transisi.dart';
 
 /// Alamat semua layar (kode M sesuai nama frame di Figma).
 abstract final class Rute {
@@ -97,6 +98,31 @@ Page<void> _geser(GoRouterState state, Widget child) => CustomTransitionPage<voi
   ),
 );
 
+/// Layar tab nav bawah: rute tanpa animasi sendiri; isinya dianimasikan [MasukTab] di KerangkaHalaman
+/// (meluncur + memudar) sementara nav bawah tetap diam.
+GoRoute _tab(String path, Widget Function(GoRouterState s) builder) => GoRoute(
+  path: path,
+  pageBuilder: (context, state) => CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: builder(state),
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 320),
+    transitionsBuilder: (context, animasi, _, child) => child,
+  ),
+);
+
+/// Catat Panen dari tombol +: lingkaran menyebar dari tombol (lihat [transisiLingkaran]).
+GoRoute _lingkaran(String path, Widget Function(GoRouterState s) builder) => GoRoute(
+  path: path,
+  pageBuilder: (context, state) => CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: builder(state),
+    transitionDuration: const Duration(milliseconds: 520),
+    reverseTransitionDuration: const Duration(milliseconds: 380),
+    transitionsBuilder: (context, animasi, _, child) => transisiLingkaran(context, animasi, child),
+  ),
+);
+
 /// [pudar] diisi untuk layar yang dibuka dengan DISSOLVE; selain itu MOVE IN.
 GoRoute _layar(String path, Widget Function(GoRouterState s) builder, {Duration? pudar}) => GoRoute(
   path: path,
@@ -132,17 +158,17 @@ GoRouter buatRouter({String awal = Rute.splash}) => GoRouter(
   routes: [
     _layar(Rute.splash, (_) => const SplashScreen(), pudar: _durasiTab),
     _layar(Rute.masuk, (_) => const MasukScreen(), pudar: _durasiSplash),
-    _layar(Rute.beranda, (_) => const BerandaScreen(), pudar: _durasiTab),
-    _layar(Rute.riwayat, (_) => const RiwayatScreen(), pudar: _durasiTab),
+    _tab(Rute.beranda, (_) => const BerandaScreen()),
+    _tab(Rute.riwayat, (_) => const RiwayatScreen()),
     _layar('/transaksi/:id', (s) => DetailTransaksiScreen(id: s.pathParameters['id']!)),
-    _layar(Rute.catatPanen, (_) => const PilihSayurScreen()),
+    _lingkaran(Rute.catatPanen, (_) => const PilihSayurScreen()),
     _layar(Rute.catatPanenBerat, (_) => const BeratTanggalScreen()),
     _layar(Rute.catatPanenPeriksa, (_) => const PeriksaPanenScreen()),
     _layar('/catat-panen/berhasil/:id', (s) => PanenTersimpanScreen(id: s.pathParameters['id']!)),
     _layar('/penjualan/:id', (s) => LengkapiPenjualanScreen(id: s.pathParameters['id']!)),
     _layar('/pembayaran/:id', (s) => CatatPembayaranScreen(id: s.pathParameters['id']!)),
-    _layar(Rute.laporan, (_) => const LaporanScreen(), pudar: _durasiTab),
-    _layar(Rute.komoditas, (_) => const DataKomoditasScreen(), pudar: _durasiTab),
+    _tab(Rute.laporan, (_) => const LaporanScreen()),
+    _tab(Rute.komoditas, (_) => const DataKomoditasScreen()),
     _layar(Rute.tambahKomoditas, (_) => const FormKomoditasScreen()),
     _layar('/pembayaran/:id/tersimpan', (s) => PembayaranTersimpanScreen(id: s.pathParameters['id']!)),
     _layar(Rute.akun, (_) => const AkunScreen()),

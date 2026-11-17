@@ -11,15 +11,12 @@ abstract final class AppColors {
   static const teksKedua = Color(0xFF55665B); // keterangan di bawah judul
   static const teksKeduaAlt = Color(0xFF54665C); // keterangan di kartu saldo
   static const teksSamar = Color(0xFF73857A); // satuan, label bulan grafik
-  static const teksLabel = Color(0xFF31724F); // label kapital (MENU CEPAT)
 
   // Hijau
   static const hijauTua = Color(0xFF11452E);
   static const hijau = Color(0xFF327C53);
-  static const hijauTombolTeks = Color(0xFF1C5E3E);
   static const ikonHijau = Color(0xFF0A5E2E);
   static const ikonNav = Color(0xFF405247);
-  static const ikonGelap = Color(0xFF102A1C);
 
   static const hijauTuaAlt = Color(0xFF12452E); // ikon telepon di M01
 
@@ -55,8 +52,6 @@ abstract final class AppColors {
   // Status transaksi
   static const biruIkon = Color(0xFF1D4ED8);
   static const biruLatar = Color(0xFFDBEAFE);
-  static const biruAngka = Color(0xFF1C4FD9);
-  static const biruGaris = Color(0xFF2663EB);
   static const kuningIkon = Color(0xFFB45309);
   static const kuningLatar = Color(0xFFFEF3C7);
   static const oranyeIkon = Color(0xFFC2410C);
@@ -85,7 +80,6 @@ abstract final class AppColors {
 
   // Kartu transaksi & detail
   static const garisPemisah = Color(0xFFB7C9BE);
-  static const garisTombolRincian = Color(0x401C5E3D); // 25%
   static const garisChip = Color(0xFF8FA396);
   static const perjalananAwal = Color(0xF517422E); // 96%
   static const perjalananAkhir = Color(0xF50D291C); // 96%
@@ -99,7 +93,6 @@ abstract final class AppColors {
   static const titikMenunggu = Color(0xFF8CB2FF);
 
   // Laporan & Komoditas (M11–M13)
-  static const belumBatang = Color(0xFFA16207);
   static const daunLatar = Color(0xFFB5E8C9);
   static const hijauAktif = Color(0xFF2A7A52);
   static const ikonDaun = Color(0xFF56665C);
@@ -114,6 +107,5 @@ abstract final class AppColors {
   static const statusDicicil = Color(0xFFE0A030);
 
   // Lain-lain
-  static const bulatPanah = Color(0xFFC0CEC6); // bulatan panah di kartu tugas
   static const garisGrafik = Color(0x1411452E); // garis bantu grafik (8%)
 }

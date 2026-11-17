@@ -14,7 +14,6 @@ import '../widgets/chip_pilihan.dart';
 import '../widgets/header_ringkas.dart';
 import '../widgets/kerangka_halaman.dart';
 import '../widgets/kotak_kaca.dart';
-import '../widgets/kotak_lembut.dart';
 import '../widgets/nav_bawah.dart';
 import '../widgets/tombol.dart';
 
@@ -27,8 +26,6 @@ class LaporanScreen extends StatelessWidget {
     final store = context.watch<AppStore>();
     final (awal, akhir) = store.periodeLaporan;
     final r = store.ringkasan(awal, akhir);
-    final persenDibayar = r.totalPenjualan == 0 ? 0 : (r.sudahDibayar / r.totalPenjualan * 100).round();
-    final belumLunas = r.sayurBelumLunas;
 
     return KerangkaHalaman(
       header: HeaderRingkas(
@@ -43,140 +40,96 @@ class LaporanScreen extends StatelessWidget {
       nav: true,
       navAktif: TabUtama.laporan,
       isi: Padding(
-        padding: EdgeInsets.only(top: 128 + AppLayout.ekstraAtas(context), bottom: 86),
+        padding: EdgeInsets.only(top: 138 + AppLayout.ekstraAtas(context), bottom: 110),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Periode
-            Padding(
-              padding: const EdgeInsets.fromLTRB(17, 14, 17, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    clipBehavior: Clip.none,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ChipPilihan(
-                          teks: 'Bulan ini',
-                          gaya: GayaChip.polos,
-                          aktif: store.pilihanPeriode == PilihanPeriode.bulanIni,
-                          onTap: () => store.aturPeriode(PilihanPeriode.bulanIni),
-                        ),
-                        const SizedBox(width: 8),
-                        ChipPilihan(
-                          teks: 'Bulan lalu',
-                          gaya: GayaChip.polos,
-                          aktif: store.pilihanPeriode == PilihanPeriode.bulanLalu,
-                          onTap: () => store.aturPeriode(PilihanPeriode.bulanLalu),
-                        ),
-                        const SizedBox(width: 8),
-                        ChipPilihan(
-                          teks: 'Pilih tanggal',
-                          gaya: GayaChip.polos,
-                          aktif: store.pilihanPeriode == PilihanPeriode.pilihTanggal,
-                          onTap: () => context.push(Rute.pilihPeriode),
-                        ),
-                      ],
-                    ),
+                  ChipPilihan(
+                    teks: 'Bulan ini',
+                    aktif: store.pilihanPeriode == PilihanPeriode.bulanIni,
+                    onTap: () => store.aturPeriode(PilihanPeriode.bulanIni),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const AppIcon(Ikon.calendar, size: 24, color: AppColors.teksKedua),
-                      const SizedBox(width: 8),
-                      Text(Format.rentang(awal, akhir), style: AppText.labelSisa),
-                    ],
+                  const SizedBox(width: 8),
+                  ChipPilihan(
+                    teks: 'Bulan lalu',
+                    aktif: store.pilihanPeriode == PilihanPeriode.bulanLalu,
+                    onTap: () => store.aturPeriode(PilihanPeriode.bulanLalu),
+                  ),
+                  const SizedBox(width: 8),
+                  ChipPilihan(
+                    teks: 'Pilih tanggal',
+                    aktif: store.pilihanPeriode == PilihanPeriode.pilihTanggal,
+                    onTap: () => context.push(Rute.pilihPeriode),
                   ),
                 ],
               ),
             ),
-            // Kartu angka
             Padding(
-              padding: const EdgeInsets.fromLTRB(17, 0, 17, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              padding: const EdgeInsets.fromLTRB(20, 10, 17, 12),
+              child: Row(
                 children: [
-                  KartuAngka(
-                    warna: WarnaKartuAngka.hijau,
-                    ikon: Ikon.banknote,
-                    label: 'Total penjualan',
-                    angka: Format.rupiah(r.totalPenjualan),
-                    keterangan: 'Rata-rata ${Format.rupiah(r.rataRataPerKg)} per kg',
-                  ),
-                  const SizedBox(height: 12),
-                  KartuAngka(
-                    warna: WarnaKartuAngka.hijau,
-                    ikon: Ikon.checkCircle,
-                    label: 'Sudah dibayar',
-                    angka: Format.rupiah(r.sudahDibayar),
-                    keterangan: '$persenDibayar% dari total penjualan',
-                  ),
-                  const SizedBox(height: 12),
-                  KartuAngka(
-                    warna: WarnaKartuAngka.kuning,
-                    ikon: Ikon.hourglass,
-                    label: 'Belum dibayar',
-                    angka: Format.rupiah(r.belumDibayar),
-                    keterangan: belumLunas.isEmpty
-                        ? '${100 - persenDibayar}%'
-                        : '${100 - persenDibayar}% · ${_gabung(belumLunas)}',
-                  ),
-                  const SizedBox(height: 12),
-                  KartuAngka(
-                    warna: WarnaKartuAngka.biru,
-                    ikon: Ikon.scale,
-                    label: 'Hasil panen',
-                    angka: Format.kg(r.hasilPanenKg),
-                    keterangan: '${Format.kg(r.terjualKg)} terjual · ${Format.kg(r.menungguKg)} menunggu',
-                  ),
+                  const AppIcon(Ikon.calendar, size: 16, color: AppColors.teksKedua),
+                  const SizedBox(width: 6),
+                  Text(Format.rentang(awal, akhir), style: AppText.gaya(13, FontWeight.w600, AppColors.teksKedua)),
                 ],
               ),
             ),
-            Padding(padding: const EdgeInsets.fromLTRB(17, 8, 17, 12), child: _GrafikPerSayur(r.perSayur)),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 17), child: _KartuRingkasan(r)),
+            if (r.perSayur.any((s) => s.penjualan > 0)) ...[
+              const SizedBox(height: 12),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 17), child: _GrafikPerSayur(r.perSayur)),
+            ],
             // Unduh & rekap
             Padding(
-              padding: const EdgeInsets.fromLTRB(17, 8, 17, 12),
+              padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Warna tombol ini mengikuti Figma: garis #15803D; ikon putih kecuali satu batang abu-abu.
-                  TombolGaris(
-                    label: 'Lihat Rekap per Sayur',
-                    ikon: Ikon.chart,
-                    warnaGaris: AppColors.garisTombolRekap,
-                    warnaTeks: AppColors.teksTombolRekap,
-                    warnaPerGaris: const [Colors.white, Colors.white, Colors.white, AppColors.ikonDaun],
-                    onTap: () => context.push(Rute.rekapSayur),
-                  ),
-                  const SizedBox(height: 12),
                   TombolUtama(
                     label: 'Unduh Laporan (PDF)',
                     ikon: Ikon.download,
                     onTap: () => context.push(Rute.cetakLaporan),
                   ),
-                  const SizedBox(height: 12),
-                  // Di prototype tombol ini belum punya tujuan; diarahkan ke Cetak & Unduh.
-                  TombolGaris(label: 'Unduh Excel', ikon: Ikon.fileText, onTap: () => context.push(Rute.cetakLaporan)),
-                  const SizedBox(height: 12),
-                  KotakLembut(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppIcon(Ikon.info, size: 24, color: AppColors.teksKedua),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Keuntungan belum bisa dihitung karena biaya produksi belum dicatat.',
-                            style: AppText.pesanBantuan,
-                          ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TombolGaris(
+                          label: 'Rekap per Sayur',
+                          onTap: () => context.push(Rute.rekapSayur),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Di prototype tombol ini belum punya tujuan; diarahkan ke Cetak & Unduh.
+                      Expanded(
+                        child: TombolGaris(
+                          label: 'Unduh Excel',
+                          onTap: () => context.push(Rute.cetakLaporan),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AppIcon(Ikon.info, size: 16, color: AppColors.teksKedua),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Keuntungan belum bisa dihitung karena biaya produksi belum dicatat.',
+                          style: AppText.gaya(12, FontWeight.w500, AppColors.teksKedua, tinggi: 1.4),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -186,109 +139,73 @@ class LaporanScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// ["Bayam", "Kangkung", "Sawi"] → "Bayam, Kangkung dan Sawi"
-  static String _gabung(List<String> nama) =>
-      nama.length == 1 ? nama.first : '${nama.sublist(0, nama.length - 1).join(', ')} dan ${nama.last}';
 }
 
-enum WarnaKartuAngka { hijau, kuning, biru }
+/// Satu kartu ringkasan: total penjualan, batang sudah/belum dibayar, dan hasil panen.
+class _KartuRingkasan extends StatelessWidget {
+  const _KartuRingkasan(this.r);
 
-/// Kartu angka ringkas (komponen "Kartu Angka V2" di Figma).
-class KartuAngka extends StatelessWidget {
-  const KartuAngka({
-    super.key,
-    required this.warna,
-    required this.ikon,
-    required this.label,
-    required this.angka,
-    required this.keterangan,
-  });
-
-  final WarnaKartuAngka warna;
-  final Ikon ikon;
-  final String label;
-  final String angka;
-  final String keterangan;
+  final Ringkasan r;
 
   @override
   Widget build(BuildContext context) {
-    final (latar, warnaIkon) = switch (warna) {
-      WarnaKartuAngka.hijau => (AppColors.lunasLatar, AppColors.hijauTuaAlt),
-      WarnaKartuAngka.kuning => (AppColors.kuningLatar, AppColors.kuningTeks),
-      WarnaKartuAngka.biru => (AppColors.biruLatar, AppColors.biruTeks),
-    };
+    final persen = r.totalPenjualan == 0 ? 0.0 : r.sudahDibayar / r.totalPenjualan;
+    final persenBulat = (persen * 100).round();
     return KotakKaca(
-      radius: 19,
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: latar, borderRadius: BorderRadius.circular(14)),
-            child: AppIcon(ikon, size: 32, color: warnaIkon),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppText.labelSisa),
-                const SizedBox(height: 2),
-                Text(angka, style: AppText.angkaKartu),
-                const SizedBox(height: 2),
-                Text(keterangan, style: AppText.bantuanIsian),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Kartu "Penjualan per sayur": batang hijau (sudah dibayar) + coklat (belum dibayar).
-class _GrafikPerSayur extends StatelessWidget {
-  const _GrafikPerSayur(this.sayur);
-
-  final List<RingkasanSayur> sayur;
-
-  @override
-  Widget build(BuildContext context) {
-    final maks = sayur.isEmpty ? 1 : sayur.map((s) => s.penjualan).reduce((a, b) => a > b ? a : b);
-
-    return KotakKaca(
-      radius: 14,
-      padding: const EdgeInsets.all(14),
+      radius: 21,
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Penjualan per sayur', style: AppText.judulBagian),
-          const SizedBox(height: 13),
-          const Wrap(
-            spacing: 11,
-            runSpacing: 8,
+          Text('Total penjualan', style: AppText.labelSaldo),
+          const SizedBox(height: 4),
+          Text(Format.rupiah(r.totalPenjualan), style: AppText.angkaSaldo.copyWith(fontSize: 26)),
+          const SizedBox(height: 2),
+          Text(
+            'Rata-rata ${Format.rupiah(r.rataRataPerKg)} per kg',
+            style: AppText.gaya(12, FontWeight.w500, AppColors.teksKedua),
+          ),
+          const SizedBox(height: 16),
+          _BatangBayar(persen: persen),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Keterangan(warna: AppColors.headerTengah, teks: 'Sudah dibayar'),
-              _Keterangan(warna: AppColors.belumBatang, teks: 'Belum dibayar'),
+              Expanded(
+                child: _Bagian(
+                  warna: AppColors.hijau,
+                  label: 'Sudah dibayar · $persenBulat%',
+                  angka: Format.rupiah(r.sudahDibayar),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _Bagian(
+                  warna: AppColors.oranyeGaris,
+                  label: 'Belum dibayar · ${r.totalPenjualan == 0 ? 0 : 100 - persenBulat}%',
+                  angka: Format.rupiah(r.belumDibayar),
+                ),
+              ),
             ],
           ),
-          LayoutBuilder(
-            builder: (context, c) {
-              // Batang terpanjang = lebar kartu − 64 (262 dari 326 di Figma).
-              final skala = maks == 0 ? 0.0 : (c.maxWidth - 64) / maks;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final s in sayur.where((s) => s.penjualan > 0)) ...[
-                    const SizedBox(height: 13),
-                    _BarisBatang(sayur: s, skala: skala),
-                  ],
-                ],
-              );
-            },
+          const SizedBox(height: 14),
+          Container(height: 1, color: const Color(0x140F1F19)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const AppIcon(Ikon.sprout, size: 16, color: AppColors.hijau),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Hasil panen · ${Format.kg(r.terjualKg)} terjual, ${Format.kg(r.menungguKg)} menunggu',
+                  style: AppText.gaya(12, FontWeight.w500, AppColors.teksKedua),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(Format.kg(r.hasilPanenKg), style: AppText.gaya(15, FontWeight.w800, AppColors.teksUtama)),
+            ],
           ),
         ],
       ),
@@ -296,36 +213,50 @@ class _GrafikPerSayur extends StatelessWidget {
   }
 }
 
-class _Keterangan extends StatelessWidget {
-  const _Keterangan({required this.warna, required this.teks});
+/// Batang tebal membulat: hijau = sudah dibayar, oranye lembut = belum. Terisi pelan saat tampil.
+class _BatangBayar extends StatelessWidget {
+  const _BatangBayar({required this.persen});
 
-  final Color warna;
-  final String teks;
+  final double persen;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 122,
-      child: Row(
-        children: [
-          Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(color: warna, borderRadius: BorderRadius.circular(4)),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(teks, style: AppText.pesanBantuan)),
-        ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: SizedBox(
+        width: double.infinity,
+        height: 12,
+        child: Stack(
+          children: [
+            Positioned.fill(child: ColoredBox(color: AppColors.oranyeGaris.withValues(alpha: 0.25))),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: persen.clamp(0, 1)),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              builder: (context, p, _) => FractionallySizedBox(
+                widthFactor: p,
+                heightFactor: 1,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    gradient: const LinearGradient(colors: [AppColors.hijau, AppColors.hijauTua]),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _BarisBatang extends StatelessWidget {
-  const _BarisBatang({required this.sayur, required this.skala});
+class _Bagian extends StatelessWidget {
+  const _Bagian({required this.warna, required this.label, required this.angka});
 
-  final RingkasanSayur sayur;
-  final double skala;
+  final Color warna;
+  final String label;
+  final String angka;
 
   @override
   Widget build(BuildContext context) {
@@ -334,36 +265,96 @@ class _BarisBatang extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(sayur.nama, style: AppText.nilaiAngka),
-            Expanded(
-              child: Text(Format.rupiahRingkas(sayur.penjualan), style: AppText.nilaiAngka, textAlign: TextAlign.right),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: warna, shape: BoxShape.circle),
             ),
+            const SizedBox(width: 6),
+            Flexible(child: Text(label, style: AppText.gaya(12, FontWeight.w500, AppColors.teksKedua), maxLines: 1)),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Text(angka, style: AppText.gaya(16, FontWeight.w800, AppColors.teksUtama)),
+      ],
+    );
+  }
+}
+
+/// Kartu "Penjualan per sayur": tiap sayur satu batang (hijau = sudah dibayar, oranye lembut = belum).
+class _GrafikPerSayur extends StatelessWidget {
+  const _GrafikPerSayur(this.sayur);
+
+  final List<RingkasanSayur> sayur;
+
+  @override
+  Widget build(BuildContext context) {
+    final tampil = sayur.where((s) => s.penjualan > 0).toList();
+    final maks = tampil.map((s) => s.penjualan).fold(0, (a, b) => a > b ? a : b);
+
+    return KotakKaca(
+      radius: 21,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Penjualan per sayur', style: AppText.gaya(15, FontWeight.w800, AppColors.teksUtama)),
+          for (final s in tampil) ...[
+            const SizedBox(height: 14),
+            _BarisBatang(sayur: s, bagian: maks == 0 ? 0 : s.penjualan / maks),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BarisBatang extends StatelessWidget {
+  const _BarisBatang({required this.sayur, required this.bagian});
+
+  final RingkasanSayur sayur;
+
+  /// Panjang batang dibanding sayur dengan penjualan terbesar (0..1).
+  final double bagian;
+
+  @override
+  Widget build(BuildContext context) {
+    final dibayar = sayur.penjualan == 0 ? 0.0 : sayur.dibayar / sayur.penjualan;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(sayur.nama, style: AppText.gaya(13, FontWeight.w700, AppColors.teksUtama))),
+            Text(Format.rupiahRingkas(sayur.penjualan), style: AppText.gaya(13, FontWeight.w700, AppColors.teksUtama)),
           ],
         ),
         const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (sayur.dibayar > 0)
-                Container(width: (sayur.dibayar * skala).roundToDouble(), height: 20, color: AppColors.headerTengah),
-              if (sayur.belumDibayar > 0)
-                Container(
-                  width: (sayur.belumDibayar * skala).roundToDouble(),
-                  height: 20,
-                  color: AppColors.belumBatang,
-                ),
-            ],
+        FractionallySizedBox(
+          alignment: Alignment.centerLeft,
+          widthFactor: bagian.clamp(0.04, 1),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: SizedBox(
+              height: 10,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (sayur.dibayar > 0)
+                    Expanded(
+                      flex: (dibayar * 1000).round(),
+                      child: const ColoredBox(color: AppColors.hijau),
+                    ),
+                  if (sayur.belumDibayar > 0)
+                    Expanded(
+                      flex: ((1 - dibayar) * 1000).round(),
+                      child: ColoredBox(color: AppColors.oranyeGaris.withValues(alpha: 0.45)),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
-        if (sayur.belumDibayar > 0) ...[
-          const SizedBox(height: 6),
-          Text(
-            'Belum dibayar ${Format.rupiahRingkas(sayur.belumDibayar)}',
-            style: AppText.bantuanIsian.copyWith(color: AppColors.kuningTeks),
-          ),
-        ],
       ],
     );
   }

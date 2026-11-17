@@ -8,8 +8,8 @@ import 'app_icon.dart';
 import 'badge_status.dart';
 import 'kotak_kaca.dart';
 
-/// Kartu satu catatan panen (komponen "Kartu Transaksi V2" di Figma):
-/// nama sayur + status, keterangan, dua angka, dan tombol "Lihat rincian".
+/// Kartu ringkas satu catatan panen di Riwayat: ikon status, nama sayur + status · tanggal,
+/// dan satu angka utama di kanan. Seluruh kartu bisa diketuk untuk membuka rincian.
 class KartuTransaksi extends StatelessWidget {
   const KartuTransaksi({super.key, required this.transaksi, required this.onTap});
 
@@ -19,85 +19,56 @@ class KartuTransaksi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = transaksi;
-    final keterangan = t.sudahDijual
-        ? 'Panen ${Format.tanggal(t.tanggalPanen)} · ${t.beratTerjualKg} kg terjual'
-        : 'Panen ${Format.tanggal(t.tanggalPanen)} · ${Format.kg(t.beratPanenKg)}';
+    final (angka, keteranganAngka) = switch (t.status) {
+      StatusTransaksi.menungguPenjualan => (Format.kg(t.beratPanenKg), 'belum ada harga'),
+      StatusTransaksi.menungguPembayaran => (Format.rupiah(t.totalPenjualan), 'belum dibayar'),
+      StatusTransaksi.dibayarSebagian => (Format.rupiah(t.totalPenjualan), 'sisa ${Format.rupiah(t.sisaTagihan)}'),
+      StatusTransaksi.lunas => (Format.rupiah(t.totalPenjualan), 'lunas'),
+    };
 
     return KotakKaca(
-      radius: 19,
-      padding: const EdgeInsets.all(14),
+      radius: 18,
+      padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
       onTap: onTap,
-      label: '${t.komoditas}, ${t.status.label}',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      label: '${t.komoditas}, ${t.status.label}, $angka, $keteranganAngka',
+      child: Row(
         children: [
-          SizedBox(
-            height: 36,
-            child: Row(
-              children: [
-                Text(t.komoditas, style: AppText.namaSayur),
-                const SizedBox(width: 10),
-                BadgeStatus(status: t.status),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(keterangan, style: AppText.keteranganKartu),
-          const SizedBox(height: 10),
-          Container(height: 1.5, color: AppColors.garisPemisah),
-          const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: t.sudahDijual
-                ? [
-                    Expanded(child: _Angka('Total penjualan', Format.rupiah(t.totalPenjualan))),
-                    const SizedBox(width: 11),
-                    Expanded(child: _Angka('Belum dibayar', Format.rupiah(t.sisaTagihan))),
-                  ]
-                : [
-                    Expanded(child: _Angka('Berat panen', Format.kg(t.beratPanenKg))),
-                    const SizedBox(width: 11),
-                    const Expanded(child: _Angka('Harga jual', 'Belum ada')),
-                  ],
-          ),
-          const SizedBox(height: 10),
           Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: const Color(0xA6FFFFFF), // putih 65%
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.garisTombolRincian),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: t.status.latar, borderRadius: BorderRadius.circular(13)),
+            child: AppIcon(t.status.ikon, size: 21, color: t.status.warna),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Lihat rincian', style: AppText.lihatRincian),
-                const SizedBox(width: 6),
-                const AppIcon(Ikon.chevronRight, size: 24, color: AppColors.hijauTuaAlt),
+                Text(t.komoditas, style: AppText.judulTugas, maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 3),
+                Text(
+                  '${t.status.label} · ${Format.tanggalPendekTanpaNol(t.tanggalPanen)}',
+                  style: AppText.gaya(12, FontWeight.w600, t.status.warna),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(angka, style: AppText.gaya(15, FontWeight.w800, AppColors.teksUtama)),
+              const SizedBox(height: 3),
+              Text(keteranganAngka, style: AppText.gaya(11, FontWeight.w500, AppColors.teksKedua)),
+            ],
+          ),
+          const SizedBox(width: 4),
+          const AppIcon(Ikon.chevronRight, size: 18, color: AppColors.teksKedua),
         ],
       ),
-    );
-  }
-}
-
-class _Angka extends StatelessWidget {
-  const _Angka(this.label, this.nilai);
-
-  final String label;
-  final String nilai;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppText.labelAngka),
-        const SizedBox(height: 2),
-        Text(nilai, style: AppText.nilaiAngka),
-      ],
     );
   }
 }
